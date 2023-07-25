@@ -1,0 +1,16 @@
+UPDATE "commit" SET comment='Load JSON template', date='2023-07-25 09:03:30.772119' WHERE id=2;
+INSERT INTO entity_class(id,type_id,name,description,display_order,display_icon,hidden,commit_id) VALUES(1,1,'connection','A transfer of commodities between nodes. E.g. electricity line, gas pipeline...',99,280378317271233,0,2);
+INSERT INTO entity_class(id,type_id,name,description,display_order,display_icon,hidden,commit_id) VALUES(2,1,'node','A universal aggregator of commodify flows over units and connections, with storage capabilities.',99,280740554077951,0,2);
+INSERT INTO entity_class(id,type_id,name,description,display_order,display_icon,hidden,commit_id) VALUES(3,1,'unit','A conversion of one/many comodities between nodes.',99,281470681805429,0,2);
+INSERT INTO entity_class(id,type_id,name,description,display_order,display_icon,hidden,commit_id) VALUES(4,2,'unit__from_node','Defines the `nodes` the `unit` can take input from, and holds most `unit_flow` variable specific parameters.',99,281470681805657,0,2);
+INSERT INTO list_value(id,parameter_value_list_id,"index",type,value,commit_id) VALUES(1,1,0,NULL,x'2262616c616e63655f747970655f6e6f646522',2);
+INSERT INTO list_value(id,parameter_value_list_id,"index",type,value,commit_id) VALUES(2,1,1,NULL,x'2262616c616e63655f747970655f6e6f6e6522',2);
+INSERT INTO object_class(entity_class_id,type_id) VALUES(1,1);
+INSERT INTO object_class(entity_class_id,type_id) VALUES(2,1);
+INSERT INTO object_class(entity_class_id,type_id) VALUES(3,1);
+INSERT INTO parameter_definition(id,entity_class_id,name,description,default_type,default_value,commit_id,parameter_value_list_id) VALUES(1,2,'balance_type','A selector for how the `:nodal_balance` constraint should be handled.','list_value_ref',x'31',2,1);
+INSERT INTO parameter_definition(id,entity_class_id,name,description,default_type,default_value,commit_id,parameter_value_list_id) VALUES(2,4,'vom_cost','Variable operating costs of a `unit_flow` variable. E.g. EUR/MWh.',NULL,x'6e756c6c',2,NULL);
+INSERT INTO parameter_value_list(id,name,commit_id) VALUES(1,'balance_type_list',2);
+INSERT INTO relationship_class(entity_class_id,type_id) VALUES(4,2);
+INSERT INTO relationship_entity_class(rowid,entity_class_id,dimension,member_class_id,member_class_type_id) VALUES(1,4,0,3,1);
+INSERT INTO relationship_entity_class(rowid,entity_class_id,dimension,member_class_id,member_class_type_id) VALUES(2,4,1,2,1);

@@ -1,0 +1,22 @@
+CREATE TABLE next_id (
+	user VARCHAR(155) NOT NULL, 
+	date VARCHAR(155) NOT NULL, 
+	entity_id INTEGER DEFAULT (NULL), 
+	entity_class_id INTEGER DEFAULT (NULL), 
+	entity_group_id INTEGER DEFAULT (NULL), 
+	parameter_definition_id INTEGER DEFAULT (NULL), 
+	parameter_value_id INTEGER DEFAULT (NULL), 
+	parameter_value_list_id INTEGER DEFAULT (NULL), 
+	list_value_id INTEGER DEFAULT (NULL), 
+	alternative_id INTEGER DEFAULT (NULL), 
+	scenario_id INTEGER DEFAULT (NULL), 
+	scenario_alternative_id INTEGER DEFAULT (NULL), 
+	tool_id INTEGER DEFAULT (NULL), 
+	feature_id INTEGER DEFAULT (NULL), 
+	tool_feature_id INTEGER DEFAULT (NULL), 
+	tool_feature_method_id INTEGER DEFAULT (NULL), 
+	metadata_id INTEGER DEFAULT (NULL), 
+	parameter_value_metadata_id INTEGER DEFAULT (NULL), 
+	entity_metadata_id INTEGER DEFAULT (NULL), 
+	PRIMARY KEY (user, date)
+);
