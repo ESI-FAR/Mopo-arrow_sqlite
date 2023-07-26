@@ -75,10 +75,10 @@ def database_equality(uri_database_1: str,
     connection: adbc_driver_manager.dbapi.Connection
 
     with adbc_driver_sqlite.dbapi.connect(uri_database_1) as connection:
-        objects_1: py.lib.RecordBatchReader = connection.adbc_get_objects()
+        objects_1: pa.lib.RecordBatchReader = connection.adbc_get_objects()
 
     with adbc_driver_sqlite.dbapi.connect(uri_database_2) as connection:
-        objects_2: py.lib.RecordBatchReader = connection.adbc_get_objects()
+        objects_2: pa.lib.RecordBatchReader = connection.adbc_get_objects()
 
     all_record_batches_1 = objects_1.read_all()
     all_record_batches_2 = objects_2.read_all()
