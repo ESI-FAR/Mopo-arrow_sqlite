@@ -42,7 +42,8 @@ def make_records(json_doc: dict, idx_lvls: dict, res: list[dict]) -> list[dict]:
 
 
 def json_loads_multi_dim_ts(json_str: str):
-    ts = pd.DataFrame(make_records(json.loads(json_str), {}, []))
+    recs = make_records(json.loads(json_str), {}, [])
+    ts = pd.DataFrame((r.values() for r in recs), columns=recs[0].keys())
     # ts["time"] = ts["time"].str.strip("t").astype(int)
     # ts["period"] = ts["period"].str.strip("p").astype(int)
 
