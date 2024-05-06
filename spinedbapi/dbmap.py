@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 import json
-from typing import Literal
+from string import ascii_lowercase
+from random import choices
 import weakref
 
 import pandas as pd
@@ -18,9 +19,21 @@ def make_records(json_doc: dict, idx_lvls: dict, res: list[dict]) -> list[dict]:
     Ask Suvayu for the example DB
 
     """
+
+    def idx_name(json_doc: dict, lvls: dict) -> str:
+        """Read index_name, if abset, generate one"""
+        try:
+            name: str = json_doc["index_name"]
+        except KeyError:
+            while (name := "".join(choices(ascii_lowercase, k=5))) in lvls:
+                pass
+        finally:
+            return name
+
     if isinstance(json_doc, dict) and "data" in json_doc:
         for key, val in json_doc["data"]:
-            make_records(val, {**idx_lvls, json_doc["index_name"]: key}, res)
+            index_name = idx_name(json_doc, idx_lvls)
+            make_records(val, {**idx_lvls, index_name: key}, res)
         return res
     else:
         idx_lvls["value"] = json_doc
