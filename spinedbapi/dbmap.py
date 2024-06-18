@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 import json
 from string import ascii_lowercase
 from random import choices
+from typing import cast
 import weakref
 
 import pandas as pd
@@ -63,7 +64,8 @@ class MyDBMap:
 
     @classmethod
     def prep_df(cls, df: pd.DataFrame, prefix: str, cols: list[str]):
-        return df[cols].rename({col: f"{prefix}_{col}" for col in cols}, axis=1)
+        _df = df.loc[:, cols].rename({col: f"{prefix}_{col}" for col in cols}, axis=1)
+        return cast(pd.DataFrame, _df)
 
     @property
     def param_values(self) -> pd.DataFrame:
@@ -116,7 +118,7 @@ class MyDBMap:
             self.data["alternatives"] = self.prep_df(df, "alternatives", ["id", "name"])
         return self.data["alternatives"]
 
-    def get_ts(self, param: str, **cols) -> pd.DataFrame:
+    def get_ts(self, param: str, drop: list[str] = [], **sel: str) -> pd.DataFrame:
         df = self.param_values.query(f"parameter_name == {param!r}")
 
         if len(value_types := df.type.unique()) == 1:
@@ -140,7 +142,11 @@ class MyDBMap:
                 entity=df["entity_name"],
             )
         )
-        return ts
+
+        if sel:
+            selection = " & ".join(f"({col} == {val!r})" for col, val in sel.items())
+            ts = ts.query(selection)
+        return ts.drop(columns=[*sel, *drop])
 
 
 if __name__ == "__main__":
