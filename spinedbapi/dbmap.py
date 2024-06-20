@@ -8,6 +8,7 @@ import weakref
 import pandas as pd
 
 from spinedb_api import DatabaseMapping
+from spinedb_api.temp_id import TempId
 
 
 def json_loads_ts(json_str: str):
@@ -59,13 +60,22 @@ def json_loads_multi_dim_ts(json_str: str):
 class MyDBMap:
     def __init__(self, url: str):
         self.db = DatabaseMapping(f"sqlite:///{url}")
-        self._finalizer = weakref.finalize(self, self.db.connection.close)
+        self._finalizer = weakref.finalize(self, self.db.close)
         self.data = {}
 
     @classmethod
     def prep_df(cls, df: pd.DataFrame, prefix: str, cols: list[str]):
         _df = df.loc[:, cols].rename({col: f"{prefix}_{col}" for col in cols}, axis=1)
         return cast(pd.DataFrame, _df)
+
+    def get(self, item_type: str):
+        return (
+            {
+                k: v.db_id if isinstance(v, TempId) else v
+                for k, v in row._asdict().items()
+            }
+            for row in self.db.get_items(item_type=item_type)
+        )
 
     @property
     def param_values(self) -> pd.DataFrame:
@@ -80,8 +90,9 @@ class MyDBMap:
                 "list_value_id",
                 "commit_id",
             ]
+
             df = (
-                pd.DataFrame(self.db.parameter_value_list())
+                pd.DataFrame(self.get(item_type="parameter_value"))
                 .drop(columns=drop_cols, errors="ignore")
                 .rename({"parameter_definition_id": "parameter_id"}, axis=1)
                 .merge(self.param_definitions, on=["parameter_id"], how="left")
@@ -95,16 +106,16 @@ class MyDBMap:
     def param_definitions(self) -> pd.DataFrame:
         if self.data.get("param_definitions") is None:
             cols = ["id", "name"]
-            df = pd.DataFrame(self.db.parameter_definition_list())
+            df = pd.DataFrame(self.get(item_type="parameter_definition"))
             self.data["param_definitions"] = self.prep_df(df, "parameter", cols)
         return self.data["param_definitions"]
 
     @property
     def entities(self) -> pd.DataFrame:
         if self.data.get("entities") is None:
-            entity = pd.DataFrame(self.db.query(self.db.entity_sq))
+            entity = pd.DataFrame(self.get(item_type="entity"))
             entity = self.prep_df(entity, "entity", ["id", "class_id", "name"])
-            eclass = pd.DataFrame(self.db.query(self.db.entity_class_sq))
+            eclass = pd.DataFrame(self.get(item_type="entity_class"))
             eclass = self.prep_df(eclass, "entity_class", ["id", "name"])
             self.data["entities"] = entity.merge(
                 eclass, on="entity_class_id", how="left"
@@ -114,7 +125,7 @@ class MyDBMap:
     @property
     def alternatives(self) -> pd.DataFrame:
         if self.data.get("alternatives") is None:
-            df = pd.DataFrame(self.db.alternative_list())
+            df = pd.DataFrame((self.get(item_type="alternative")))
             self.data["alternatives"] = self.prep_df(df, "alternatives", ["id", "name"])
         return self.data["alternatives"]
 
