@@ -43,7 +43,8 @@ def make_records(json_doc: dict, idx_lvls: dict, res: list[dict]) -> list[dict]:
         return res
 
 
-def json_loads_multi_dim_ts(json_str: str):
+def json_loads_multi_dim_ts(json_str: str | bytes):
+    json_str = json_str.decode() if isinstance(json_str, bytes) else json_str
     recs = make_records(json.loads(json_str), {}, [])
     ts = pd.DataFrame((r.values() for r in recs), columns=recs[0].keys())
     # ts["time"] = ts["time"].str.strip("t").astype(int)
