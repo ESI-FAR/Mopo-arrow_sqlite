@@ -1,0 +1,8 @@
+adbc_driver_manager
+adbc_driver_sqlite
+adbc_driver_postgresql
+ipython
+pandas[performance]
+pyarrow
+rich
+spinedb-api
