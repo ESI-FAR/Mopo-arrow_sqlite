@@ -26,5 +26,5 @@ ON
 	pv.parameter_definition_id = pdefs.id AND
 	pv.entity_class_id = ec.id AND
 	pv.entity_id = e.id
-WHERE pdefs.name = 'timeseries';
+WHERE pdefs.name IN ('timeseries', 'influx', 'capacityFactor');
 ```
