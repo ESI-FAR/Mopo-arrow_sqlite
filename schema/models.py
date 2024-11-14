@@ -20,6 +20,8 @@ from pydantic.dataclasses import dataclass
 
 @dataclass(frozen=True)
 class REIndex:
+    """Run end encoded array"""
+
     name: str
     values: list[str | float | int | datetime]
     run_end: list[int]
@@ -28,6 +30,8 @@ class REIndex:
 
 @dataclass(frozen=True)
 class DEIndex:
+    """Dictionary encoded array"""
+
     name: str
     values: list[str | float | int | datetime]
     indices: list[int]
@@ -36,6 +40,8 @@ class DEIndex:
 
 @dataclass(frozen=True)
 class Array:
+    """Array"""
+
     name: str
     values: list[str | float | int | datetime]
     type: str = "array"
@@ -43,12 +49,16 @@ class Array:
 
 @dataclass(frozen=True)
 class Table:
+    """A table consisting of a set of columns"""
+
     columns: list[REIndex | DEIndex | Array]
     type: str = "table"
 
 
 @dataclass(frozen=True)
 class Tables:
+    """A table consisting of multiple batches of smaller tables"""
+
     batches: list[Table]
     type: str = "tables"
 
