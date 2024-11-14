@@ -1,0 +1,162 @@
+{
+  "$defs": {
+    "Array": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "values": {
+          "items": {},
+          "title": "Values",
+          "type": "array"
+        },
+        "type": {
+          "default": "array",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "values"
+      ],
+      "title": "Array",
+      "type": "object"
+    },
+    "DEIndex": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "values": {
+          "items": {},
+          "title": "Values",
+          "type": "array"
+        },
+        "indices": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Indices",
+          "type": "array"
+        },
+        "type": {
+          "default": "de_index",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "values",
+        "indices"
+      ],
+      "title": "DEIndex",
+      "type": "object"
+    },
+    "REIndex": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "values": {
+          "items": {},
+          "title": "Values",
+          "type": "array"
+        },
+        "run_end": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Run End",
+          "type": "array"
+        },
+        "type": {
+          "default": "re_index",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "values",
+        "run_end"
+      ],
+      "title": "REIndex",
+      "type": "object"
+    },
+    "Table": {
+      "properties": {
+        "columns": {
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/REIndex"
+              },
+              {
+                "$ref": "#/$defs/DEIndex"
+              },
+              {
+                "$ref": "#/$defs/Array"
+              }
+            ]
+          },
+          "title": "Columns",
+          "type": "array"
+        },
+        "type": {
+          "default": "table",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "columns"
+      ],
+      "title": "Table",
+      "type": "object"
+    },
+    "Tables": {
+      "properties": {
+        "batches": {
+          "items": {
+            "$ref": "#/$defs/Table"
+          },
+          "title": "Batches",
+          "type": "array"
+        },
+        "type": {
+          "default": "tables",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "batches"
+      ],
+      "title": "Tables",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "value": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Tables"
+        },
+        {
+          "$ref": "#/$defs/Table"
+        }
+      ],
+      "title": "Value"
+    }
+  },
+  "required": [
+    "value"
+  ],
+  "title": "JSONBlob",
+  "type": "object"
+}
