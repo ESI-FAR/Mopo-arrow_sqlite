@@ -17,29 +17,27 @@ from typing import TypeVar
 from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
 
-T = TypeVar("T", str, float, int, datetime)
-
 
 @dataclass(frozen=True)
-class REIndex[T]:
+class REIndex:
     name: str
-    values: list[T]
+    values: list[str | float | int | datetime]
     run_end: list[int]
     type: str = "re_index"
 
 
 @dataclass(frozen=True)
-class DEIndex[T]:
+class DEIndex:
     name: str
-    values: list[T]
+    values: list[str | float | int | datetime]
     indices: list[int]
     type: str = "de_index"
 
 
 @dataclass(frozen=True)
-class Array[T]:
+class Array:
     name: str
-    values: list[T]
+    values: list[str | float | int | datetime]
     type: str = "array"
 
 

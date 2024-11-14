@@ -7,7 +7,23 @@
           "type": "string"
         },
         "values": {
-          "items": {},
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "format": "date-time",
+                "type": "string"
+              }
+            ]
+          },
           "title": "Values",
           "type": "array"
         },
@@ -31,7 +47,23 @@
           "type": "string"
         },
         "values": {
-          "items": {},
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "format": "date-time",
+                "type": "string"
+              }
+            ]
+          },
           "title": "Values",
           "type": "array"
         },
@@ -63,7 +95,23 @@
           "type": "string"
         },
         "values": {
-          "items": {},
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "format": "date-time",
+                "type": "string"
+              }
+            ]
+          },
           "title": "Values",
           "type": "array"
         },
