@@ -1,6 +1,7 @@
 {
   "$defs": {
     "Array": {
+      "description": "Array",
       "properties": {
         "name": {
           "title": "Name",
@@ -17,10 +18,6 @@
               },
               {
                 "type": "integer"
-              },
-              {
-                "format": "date-time",
-                "type": "string"
               }
             ]
           },
@@ -40,7 +37,46 @@
       "title": "Array",
       "type": "object"
     },
+    "ArrayIndex": {
+      "description": "Any array that is an index, e.g. a sequence, timestamps, labels",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "values": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "format": "date-time",
+                "type": "string"
+              }
+            ]
+          },
+          "title": "Values",
+          "type": "array"
+        },
+        "type": {
+          "default": "array_index",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "values"
+      ],
+      "title": "ArrayIndex",
+      "type": "object"
+    },
     "DEIndex": {
+      "description": "Dictionary encoded array",
       "properties": {
         "name": {
           "title": "Name",
@@ -89,6 +125,7 @@
       "type": "object"
     },
     "REIndex": {
+      "description": "Run end encoded array",
       "properties": {
         "name": {
           "title": "Name",
@@ -137,8 +174,9 @@
       "type": "object"
     },
     "Table": {
+      "description": "A table consisting of a set of columns",
       "properties": {
-        "columns": {
+        "indices": {
           "items": {
             "anyOf": [
               {
@@ -148,9 +186,16 @@
                 "$ref": "#/$defs/DEIndex"
               },
               {
-                "$ref": "#/$defs/Array"
+                "$ref": "#/$defs/ArrayIndex"
               }
             ]
+          },
+          "title": "Indices",
+          "type": "array"
+        },
+        "columns": {
+          "items": {
+            "$ref": "#/$defs/Array"
           },
           "title": "Columns",
           "type": "array"
@@ -162,12 +207,14 @@
         }
       },
       "required": [
+        "indices",
         "columns"
       ],
       "title": "Table",
       "type": "object"
     },
     "Tables": {
+      "description": "A table consisting of multiple batches of smaller tables",
       "properties": {
         "batches": {
           "items": {

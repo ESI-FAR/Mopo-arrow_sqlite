@@ -39,11 +39,20 @@ class DEIndex:
 
 
 @dataclass(frozen=True)
+class ArrayIndex:
+    """Any array that is an index, e.g. a sequence, timestamps, labels"""
+
+    name: str
+    values: list[str | int | datetime]
+    type: str = "array_index"
+
+
+@dataclass(frozen=True)
 class Array:
     """Array"""
 
     name: str
-    values: list[str | float | int | datetime]
+    values: list[str | float | int]
     type: str = "array"
 
 
@@ -51,7 +60,8 @@ class Array:
 class Table:
     """A table consisting of a set of columns"""
 
-    columns: list[REIndex | DEIndex | Array]
+    indices: list[REIndex | DEIndex | ArrayIndex]
+    columns: list[Array]
     type: str = "table"
 
 
