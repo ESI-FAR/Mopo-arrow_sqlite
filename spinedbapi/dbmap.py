@@ -34,9 +34,15 @@ def make_records(json_doc: dict, idx_lvls: dict, res: list[dict]) -> list[dict]:
     """
 
     if isinstance(json_doc, dict) and "data" in json_doc:
-        for key, val in json_doc["data"]:
-            index_name = idx_name(json_doc, idx_lvls)
-            make_records(val, {**idx_lvls, index_name: key}, res)
+        match json_doc:
+            case {"data": [[str(), dict() | float() | int()], *_] as data}:
+                for key, val in data:
+                    index_name = idx_name(json_doc, idx_lvls)
+                    make_records(val, {**idx_lvls, index_name: key}, res)
+            case {"data": [float() | int(), *_] as data, **opts}:
+                for val in json_doc["data"]:
+                    index_name = idx_name(json_doc, idx_lvls)
+                    make_records(val, {**idx_lvls, index_name: key}, res)
         return res
     else:
         idx_lvls["value"] = json_doc
