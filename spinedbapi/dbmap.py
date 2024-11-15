@@ -11,6 +11,17 @@ from spinedb_api import DatabaseMapping
 from spinedb_api.temp_id import TempId
 
 
+def idx_name(json_doc: dict, lvls: dict) -> str:
+    """Read index_name, if absent, generate one"""
+    try:
+        name: str = json_doc["index_name"]
+    except KeyError:
+        while (name := "".join(choices(ascii_lowercase, k=5))) in lvls:
+            pass
+    finally:
+        return name
+
+
 def json_loads_ts(json_str: str | bytes):
     return pd.Series(json.loads(json_str)["data"])
 
@@ -21,16 +32,6 @@ def make_records(json_doc: dict, idx_lvls: dict, res: list[dict]) -> list[dict]:
     Ask Suvayu for the example DB
 
     """
-
-    def idx_name(json_doc: dict, lvls: dict) -> str:
-        """Read index_name, if abset, generate one"""
-        try:
-            name: str = json_doc["index_name"]
-        except KeyError:
-            while (name := "".join(choices(ascii_lowercase, k=5))) in lvls:
-                pass
-        finally:
-            return name
 
     if isinstance(json_doc, dict) and "data" in json_doc:
         for key, val in json_doc["data"]:
