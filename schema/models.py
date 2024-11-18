@@ -14,7 +14,7 @@
 from datetime import datetime
 from typing import TypeVar
 
-from pydantic import BaseModel
+from pydantic import RootModel
 from pydantic.dataclasses import dataclass
 
 
@@ -73,8 +73,7 @@ class Tables:
     type: str = "tables"
 
 
-class JSONBlob(BaseModel):
-    value: Tables | Table
+JSONBlob = TypeVar("JSONBlob", Tables, Table)
 
 
 if __name__ == "__main__":
@@ -86,5 +85,5 @@ if __name__ == "__main__":
     parser.add_argument("json_file", help="Path of JSON schema file to write")
     opts = parser.parse_args()
 
-    schema = JSONBlob.model_json_schema()
+    schema = RootModel[JSONBlob].model_json_schema()
     Path(opts.json_file).write_text(json.dumps(schema, indent=2))

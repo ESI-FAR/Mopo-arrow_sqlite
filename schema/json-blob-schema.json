@@ -236,22 +236,13 @@
       "type": "object"
     }
   },
-  "properties": {
-    "value": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/Tables"
-        },
-        {
-          "$ref": "#/$defs/Table"
-        }
-      ],
-      "title": "Value"
+  "anyOf": [
+    {
+      "$ref": "#/$defs/Tables"
+    },
+    {
+      "$ref": "#/$defs/Table"
     }
-  },
-  "required": [
-    "value"
   ],
-  "title": "JSONBlob",
-  "type": "object"
+  "title": "RootModel[TypeVar]"
 }
