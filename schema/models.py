@@ -12,10 +12,24 @@
 
 # from dataclasses import dataclass
 from datetime import datetime
-from typing import TypeVar
 
 from pydantic import RootModel
 from pydantic.dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class RLIndex:
+    """Run length encoded array
+
+    NOTE: this is not supported by PyArrow, we will have to convert to
+    a supported format.
+
+    """
+
+    name: str
+    values: list[str | float | int | datetime]
+    run_len: list[int]
+    type: str = "rl_index"
 
 
 @dataclass(frozen=True)
@@ -52,7 +66,7 @@ class Array:
     """Array"""
 
     name: str
-    values: list[str | float | int]
+    values: list[str | float | int | bool]
     type: str = "array"
 
 
@@ -73,9 +87,6 @@ class Tables:
     type: str = "tables"
 
 
-JSONBlob = TypeVar("JSONBlob", Tables, Table)
-
-
 if __name__ == "__main__":
     from argparse import ArgumentParser
     import json
@@ -85,5 +96,5 @@ if __name__ == "__main__":
     parser.add_argument("json_file", help="Path of JSON schema file to write")
     opts = parser.parse_args()
 
-    schema = RootModel[JSONBlob].model_json_schema()
+    schema = RootModel[Tables | Table].model_json_schema()
     Path(opts.json_file).write_text(json.dumps(schema, indent=2))

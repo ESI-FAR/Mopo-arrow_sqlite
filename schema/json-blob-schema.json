@@ -18,6 +18,9 @@
               },
               {
                 "type": "integer"
+              },
+              {
+                "type": "boolean"
               }
             ]
           },
@@ -244,5 +247,5 @@
       "$ref": "#/$defs/Table"
     }
   ],
-  "title": "RootModel[TypeVar]"
+  "title": "RootModel[Union[Tables, Table]]"
 }
