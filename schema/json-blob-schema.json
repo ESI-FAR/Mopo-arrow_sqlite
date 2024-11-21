@@ -92,9 +92,6 @@
                 "type": "string"
               },
               {
-                "type": "number"
-              },
-              {
                 "type": "integer"
               },
               {
@@ -139,9 +136,6 @@
             "anyOf": [
               {
                 "type": "string"
-              },
-              {
-                "type": "number"
               },
               {
                 "type": "integer"

@@ -27,7 +27,7 @@ class RLIndex:
     """
 
     name: str
-    values: list[str | float | int | datetime]
+    values: list[str | int | datetime]
     run_len: list[int]
     type: str = "rl_index"
 
@@ -37,7 +37,7 @@ class REIndex:
     """Run end encoded array"""
 
     name: str
-    values: list[str | float | int | datetime]
+    values: list[str | int | datetime]
     run_end: list[int]
     type: str = "re_index"
 
@@ -47,7 +47,7 @@ class DEIndex:
     """Dictionary encoded array"""
 
     name: str
-    values: list[str | float | int | datetime]
+    values: list[str | int | datetime]
     indices: list[int]
     type: str = "de_index"
 
