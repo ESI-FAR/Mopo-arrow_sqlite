@@ -8,34 +8,66 @@
           "type": "string"
         },
         "values": {
-          "items": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "number"
-              },
-              {
+          "anyOf": [
+            {
+              "items": {
                 "type": "integer"
               },
-              {
+              "type": "array"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
                 "type": "boolean"
-              }
-            ]
-          },
-          "title": "Values",
-          "type": "array"
+              },
+              "type": "array"
+            }
+          ],
+          "title": "Values"
+        },
+        "value_type": {
+          "enum": [
+            "integer",
+            "string",
+            "date-time",
+            "number",
+            "boolean"
+          ],
+          "title": "Value Type",
+          "type": "string"
         },
         "type": {
+          "const": "array",
           "default": "array",
+          "enum": [
+            "array"
+          ],
           "title": "Type",
           "type": "string"
         }
       },
       "required": [
         "name",
-        "values"
+        "values",
+        "value_type"
       ],
       "title": "Array",
       "type": "object"
@@ -48,32 +80,52 @@
           "type": "string"
         },
         "values": {
-          "items": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
+          "anyOf": [
+            {
+              "items": {
                 "type": "integer"
               },
-              {
+              "type": "array"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
                 "format": "date-time",
                 "type": "string"
-              }
-            ]
-          },
-          "title": "Values",
-          "type": "array"
+              },
+              "type": "array"
+            }
+          ],
+          "title": "Values"
+        },
+        "value_type": {
+          "enum": [
+            "integer",
+            "string",
+            "date-time"
+          ],
+          "title": "Value Type",
+          "type": "string"
         },
         "type": {
+          "const": "array_index",
           "default": "array_index",
+          "enum": [
+            "array_index"
+          ],
           "title": "Type",
           "type": "string"
         }
       },
       "required": [
         "name",
-        "values"
+        "values",
+        "value_type"
       ],
       "title": "ArrayIndex",
       "type": "object"
@@ -86,22 +138,37 @@
           "type": "string"
         },
         "values": {
-          "items": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
+          "anyOf": [
+            {
+              "items": {
                 "type": "integer"
               },
-              {
+              "type": "array"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
                 "format": "date-time",
                 "type": "string"
-              }
-            ]
-          },
-          "title": "Values",
-          "type": "array"
+              },
+              "type": "array"
+            }
+          ],
+          "title": "Values"
+        },
+        "value_type": {
+          "enum": [
+            "integer",
+            "string",
+            "date-time"
+          ],
+          "title": "Value Type",
+          "type": "string"
         },
         "indices": {
           "items": {
@@ -111,7 +178,11 @@
           "type": "array"
         },
         "type": {
+          "const": "de_index",
           "default": "de_index",
+          "enum": [
+            "de_index"
+          ],
           "title": "Type",
           "type": "string"
         }
@@ -119,6 +190,7 @@
       "required": [
         "name",
         "values",
+        "value_type",
         "indices"
       ],
       "title": "DEIndex",
@@ -132,22 +204,37 @@
           "type": "string"
         },
         "values": {
-          "items": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
+          "anyOf": [
+            {
+              "items": {
                 "type": "integer"
               },
-              {
+              "type": "array"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
                 "format": "date-time",
                 "type": "string"
-              }
-            ]
-          },
-          "title": "Values",
-          "type": "array"
+              },
+              "type": "array"
+            }
+          ],
+          "title": "Values"
+        },
+        "value_type": {
+          "enum": [
+            "integer",
+            "string",
+            "date-time"
+          ],
+          "title": "Value Type",
+          "type": "string"
         },
         "run_end": {
           "items": {
@@ -157,7 +244,11 @@
           "type": "array"
         },
         "type": {
+          "const": "re_index",
           "default": "re_index",
+          "enum": [
+            "re_index"
+          ],
           "title": "Type",
           "type": "string"
         }
@@ -165,6 +256,7 @@
       "required": [
         "name",
         "values",
+        "value_type",
         "run_end"
       ],
       "title": "REIndex",
@@ -198,7 +290,11 @@
           "type": "array"
         },
         "type": {
+          "const": "table",
           "default": "table",
+          "enum": [
+            "table"
+          ],
           "title": "Type",
           "type": "string"
         }
@@ -209,37 +305,8 @@
       ],
       "title": "Table",
       "type": "object"
-    },
-    "Tables": {
-      "description": "A table consisting of multiple batches of smaller tables",
-      "properties": {
-        "batches": {
-          "items": {
-            "$ref": "#/$defs/Table"
-          },
-          "title": "Batches",
-          "type": "array"
-        },
-        "type": {
-          "default": "tables",
-          "title": "Type",
-          "type": "string"
-        }
-      },
-      "required": [
-        "batches"
-      ],
-      "title": "Tables",
-      "type": "object"
     }
   },
-  "anyOf": [
-    {
-      "$ref": "#/$defs/Tables"
-    },
-    {
-      "$ref": "#/$defs/Table"
-    }
-  ],
-  "title": "RootModel[Union[Tables, Table]]"
+  "$ref": "#/$defs/Table",
+  "title": "RootModel[Table]"
 }
