@@ -18,7 +18,7 @@ from pydantic import RootModel
 from pydantic.dataclasses import dataclass
 
 
-# more verbose alternative to the typealias before
+# more verbose alternative to the typealias below
 @dataclass(frozen=True)
 class Integers_:
     values: list[int]
