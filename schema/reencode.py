@@ -60,7 +60,6 @@ def re_encode(arr: ArrayIndex) -> REIndex:
 
 
 def de_encode(arr: ArrayIndex) -> DEIndex:
-    # FIXME: not validating!
     # not using list(set(...)) to preserve order
     dictionary = list(dict.fromkeys(arr.values))
     indices = list(map(dictionary.index, arr.values))
