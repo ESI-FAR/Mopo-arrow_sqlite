@@ -145,14 +145,15 @@
           "title": "Name",
           "type": "string"
         },
+        "indices": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Indices",
+          "type": "array"
+        },
         "values": {
           "anyOf": [
-            {
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
-            },
             {
               "items": {
                 "type": "string"
@@ -176,20 +177,12 @@
         },
         "value_type": {
           "enum": [
-            "integer",
             "string",
             "number",
             "boolean"
           ],
           "title": "Value Type",
           "type": "string"
-        },
-        "indices": {
-          "items": {
-            "type": "integer"
-          },
-          "title": "Indices",
-          "type": "array"
         },
         "type": {
           "const": "de_array",
@@ -203,9 +196,9 @@
       },
       "required": [
         "name",
+        "indices",
         "values",
-        "value_type",
-        "indices"
+        "value_type"
       ],
       "title": "DEArray",
       "type": "object"
@@ -217,14 +210,15 @@
           "title": "Name",
           "type": "string"
         },
+        "indices": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Indices",
+          "type": "array"
+        },
         "values": {
           "anyOf": [
-            {
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
-            },
             {
               "items": {
                 "type": "string"
@@ -257,7 +251,6 @@
         },
         "value_type": {
           "enum": [
-            "integer",
             "string",
             "date-time",
             "duration",
@@ -265,13 +258,6 @@
           ],
           "title": "Value Type",
           "type": "string"
-        },
-        "indices": {
-          "items": {
-            "type": "integer"
-          },
-          "title": "Indices",
-          "type": "array"
         },
         "type": {
           "const": "de_index",
@@ -285,9 +271,9 @@
       },
       "required": [
         "name",
+        "indices",
         "values",
-        "value_type",
-        "indices"
+        "value_type"
       ],
       "title": "DEIndex",
       "type": "object"
@@ -299,14 +285,15 @@
           "title": "Name",
           "type": "string"
         },
+        "run_end": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Run End",
+          "type": "array"
+        },
         "values": {
           "anyOf": [
-            {
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
-            },
             {
               "items": {
                 "type": "string"
@@ -330,20 +317,12 @@
         },
         "value_type": {
           "enum": [
-            "integer",
             "string",
             "number",
             "boolean"
           ],
           "title": "Value Type",
           "type": "string"
-        },
-        "run_end": {
-          "items": {
-            "type": "integer"
-          },
-          "title": "Run End",
-          "type": "array"
         },
         "type": {
           "const": "re_array",
@@ -357,9 +336,9 @@
       },
       "required": [
         "name",
+        "run_end",
         "values",
-        "value_type",
-        "run_end"
+        "value_type"
       ],
       "title": "REArray",
       "type": "object"
@@ -371,14 +350,15 @@
           "title": "Name",
           "type": "string"
         },
+        "run_end": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Run End",
+          "type": "array"
+        },
         "values": {
           "anyOf": [
-            {
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
-            },
             {
               "items": {
                 "type": "string"
@@ -411,7 +391,6 @@
         },
         "value_type": {
           "enum": [
-            "integer",
             "string",
             "date-time",
             "duration",
@@ -419,13 +398,6 @@
           ],
           "title": "Value Type",
           "type": "string"
-        },
-        "run_end": {
-          "items": {
-            "type": "integer"
-          },
-          "title": "Run End",
-          "type": "array"
         },
         "type": {
           "const": "re_index",
@@ -439,9 +411,9 @@
       },
       "required": [
         "name",
+        "run_end",
         "values",
-        "value_type",
-        "run_end"
+        "value_type"
       ],
       "title": "REIndex",
       "type": "object"

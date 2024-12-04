@@ -11,11 +11,13 @@
 """
 
 # from dataclasses import dataclass
+# from dataclasses import field
 from datetime import datetime, timedelta
 from typing import Annotated, Literal, Type, TypeAlias
 
 from pydantic import RootModel
 from pydantic.dataclasses import dataclass
+from pydantic.dataclasses import Field as field
 from pydantic.types import StringConstraints
 
 
@@ -55,93 +57,123 @@ Strings: TypeAlias = list[str]
 Datetimes: TypeAlias = list[datetime]
 Timedeltas: TypeAlias = list[timedelta]
 
-interval_re = r"(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+"
-Interval = Annotated[
-    str, StringConstraints(pattern=rf"^{interval_re}[,;]{interval_re}$|^{interval_re}$")
+time_pat_re = r"(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+"
+# FIXME: how to do w/o Pydantic?
+TimePattern = Annotated[
+    str, StringConstraints(pattern=rf"^{time_pat_re}[,;]{time_pat_re}$|^{time_pat_re}$")
 ]
-TimePattern: TypeAlias = list[Interval]
+TimePatterns: TypeAlias = list[TimePattern]
 
 Booleans: TypeAlias = list[bool]
 Floats: TypeAlias = list[float]
 
 
+ValueType: TypeAlias = Literal[
+    "string", "integer", "number", "boolean", "date-time", "duration"
+]
+type_map: dict[type, ValueType] = {
+    str: "string",
+    int: "integer",
+    float: "number",
+    bool: "boolean",
+    datetime: "date-time",
+    timedelta: "duration",
+    TimePattern: "time-pattern",
+}
+
+
+class _TypeInferMixin:
+    def __post_init__(self):
+        value_type, *_ = set(map(type, getattr(self, "values"))) - {type(None)}
+        # NOTE: have to do it like this since inherited dataclasses are frozen
+        super().__setattr__("value_type", type_map[value_type])
+
+
 @dataclass(frozen=True)
-class RLIndex:
+class RLIndex(_TypeInferMixin):
     """Run length encoded array
 
-    NOTE: this is not supported by PyArrow, we will have to convert to
-    a supported format.
+    NOTE: this is not supported by PyArrow, if we use it, we will have
+    to convert to a supported format.
 
     """
 
     name: str
-    values: Integers | Strings | Datetimes | Timedeltas | TimePattern
-    value_type: Literal["integer", "string", "date-time", "duration", "time-pattern"]
     run_len: Integers
+    values: Strings | Datetimes | Timedeltas | TimePatterns
+    value_type: Literal["string", "date-time", "duration", "time-pattern"] = field(
+        init=False
+    )
     type: Literal["rl_index"] = "rl_index"
 
 
 @dataclass(frozen=True)
-class REIndex:
+class REIndex(_TypeInferMixin):
     """Run end encoded array"""
 
     name: str
-    values: Integers | Strings | Datetimes | Timedeltas | TimePattern
-    value_type: Literal["integer", "string", "date-time", "duration", "time-pattern"]
     run_end: list[int]
+    values: Strings | Datetimes | Timedeltas | TimePatterns
+    value_type: Literal["string", "date-time", "duration", "time-pattern"] = field(
+        init=False
+    )
     type: Literal["re_index"] = "re_index"
 
 
 @dataclass(frozen=True)
-class DEIndex:
+class DEIndex(_TypeInferMixin):
     """Dictionary encoded array"""
 
     name: str
-    values: Integers | Strings | Datetimes | Timedeltas | TimePattern
-    value_type: Literal["integer", "string", "date-time", "duration", "time-pattern"]
     indices: list[int]
+    values: Strings | Datetimes | Timedeltas | TimePatterns
+    value_type: Literal["string", "date-time", "duration", "time-pattern"] = field(
+        init=False
+    )
     type: Literal["de_index"] = "de_index"
 
 
 @dataclass(frozen=True)
-class ArrayIndex:
+class ArrayIndex(_TypeInferMixin):
     """Any array that is an index, e.g. a sequence, timestamps, labels"""
 
     name: str
-    values: Integers | Strings | Datetimes | Timedeltas | TimePattern
-    value_type: Literal["integer", "string", "date-time", "duration", "time-pattern"]
+    values: Integers | Strings | Datetimes | Timedeltas | TimePatterns
+    value_type: Literal[
+        "integer", "string", "date-time", "duration", "time-pattern"
+    ] = field(init=False)
     type: Literal["array_index"] = "array_index"
 
 
 @dataclass(frozen=True)
-class REArray:
+class REArray(_TypeInferMixin):
     """Run end encoded array"""
 
     name: str
-    values: Integers | Strings | Floats | Booleans
-    value_type: Literal["integer", "string", "number", "boolean"]
     run_end: list[int]
+    values: Strings | Floats | Booleans
+    value_type: Literal["string", "number", "boolean"] = field(init=False)
     type: Literal["re_array"] = "re_array"
 
 
 @dataclass(frozen=True)
-class DEArray:
+class DEArray(_TypeInferMixin):
     """Dictionary encoded array"""
 
     name: str
-    values: Integers | Strings | Floats | Booleans
-    value_type: Literal["integer", "string", "number", "boolean"]
     indices: list[int]
+    values: Strings | Floats | Booleans
+    value_type: Literal["string", "number", "boolean"] = field(init=False)
     type: Literal["de_array"] = "de_array"
 
 
 @dataclass(frozen=True)
-class Array:
+class Array(_TypeInferMixin):
     """Array"""
 
     name: str
     values: Integers | Strings | Floats | Booleans
-    value_type: Literal["integer", "string", "number", "boolean"]
+    value_type: Literal["integer", "string", "number", "boolean"] = field(init=False)
     type: Literal["array"] = "array"
 
 
