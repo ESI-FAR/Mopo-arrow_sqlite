@@ -20,7 +20,8 @@ from typing import Literal, TypeAlias
 import pandas as pd
 import pyarrow as pa
 from pydantic import RootModel
-from rich.pretty import pprint
+
+# from rich.pretty import pprint
 
 from dbmap import make_records
 from models import Array, ArrayIndex, DEArray, DEIndex, REIndex, RLIndex, Table
