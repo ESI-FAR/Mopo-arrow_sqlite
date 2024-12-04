@@ -11,11 +11,12 @@
 """
 
 # from dataclasses import dataclass
-from datetime import datetime
-from typing import Literal, Type, TypeAlias
+from datetime import datetime, timedelta
+from typing import Annotated, Literal, Type, TypeAlias
 
 from pydantic import RootModel
 from pydantic.dataclasses import dataclass
+from pydantic.types import StringConstraints
 
 
 # more verbose alternative to the typealias below
@@ -52,6 +53,13 @@ class Floats_:
 Integers: TypeAlias = list[int]
 Strings: TypeAlias = list[str]
 Datetimes: TypeAlias = list[datetime]
+Timedeltas: TypeAlias = list[timedelta]
+
+interval_re = r"(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+"
+Interval = Annotated[
+    str, StringConstraints(pattern=rf"^{interval_re}[,;]{interval_re}$|^{interval_re}$")
+]
+TimePattern: TypeAlias = list[Interval]
 
 Booleans: TypeAlias = list[bool]
 Floats: TypeAlias = list[float]
@@ -67,8 +75,8 @@ class RLIndex:
     """
 
     name: str
-    values: Integers | Strings | Datetimes
-    value_type: Literal["integer", "string", "date-time"]
+    values: Integers | Strings | Datetimes | Timedeltas | TimePattern
+    value_type: Literal["integer", "string", "date-time", "duration", "time-pattern"]
     run_len: Integers
     type: Literal["rl_index"] = "rl_index"
 
@@ -78,8 +86,8 @@ class REIndex:
     """Run end encoded array"""
 
     name: str
-    values: Integers | Strings | Datetimes
-    value_type: Literal["integer", "string", "date-time"]
+    values: Integers | Strings | Datetimes | Timedeltas | TimePattern
+    value_type: Literal["integer", "string", "date-time", "duration", "time-pattern"]
     run_end: list[int]
     type: Literal["re_index"] = "re_index"
 
@@ -89,8 +97,8 @@ class DEIndex:
     """Dictionary encoded array"""
 
     name: str
-    values: Integers | Strings | Datetimes
-    value_type: Literal["integer", "string", "date-time"]
+    values: Integers | Strings | Datetimes | Timedeltas | TimePattern
+    value_type: Literal["integer", "string", "date-time", "duration", "time-pattern"]
     indices: list[int]
     type: Literal["de_index"] = "de_index"
 
@@ -100,9 +108,31 @@ class ArrayIndex:
     """Any array that is an index, e.g. a sequence, timestamps, labels"""
 
     name: str
-    values: Integers | Strings | Datetimes
-    value_type: Literal["integer", "string", "date-time"]
+    values: Integers | Strings | Datetimes | Timedeltas | TimePattern
+    value_type: Literal["integer", "string", "date-time", "duration", "time-pattern"]
     type: Literal["array_index"] = "array_index"
+
+
+@dataclass(frozen=True)
+class REArray:
+    """Run end encoded array"""
+
+    name: str
+    values: Integers | Strings | Floats | Booleans
+    value_type: Literal["integer", "string", "number", "boolean"]
+    run_end: list[int]
+    type: Literal["re_array"] = "re_array"
+
+
+@dataclass(frozen=True)
+class DEArray:
+    """Dictionary encoded array"""
+
+    name: str
+    values: Integers | Strings | Floats | Booleans
+    value_type: Literal["integer", "string", "number", "boolean"]
+    indices: list[int]
+    type: Literal["de_array"] = "de_array"
 
 
 @dataclass(frozen=True)
@@ -110,8 +140,8 @@ class Array:
     """Array"""
 
     name: str
-    values: Integers | Strings | Datetimes | Floats | Booleans
-    value_type: Literal["integer", "string", "date-time", "number", "boolean"]
+    values: Integers | Strings | Floats | Booleans
+    value_type: Literal["integer", "string", "number", "boolean"]
     type: Literal["array"] = "array"
 
 
@@ -120,7 +150,7 @@ class Table:
     """A table consisting of a set of columns"""
 
     indices: list[REIndex | DEIndex | ArrayIndex]
-    columns: list[Array]
+    columns: list[REArray | DEArray | Array]
     type: Literal["table"] = "table"
 
 

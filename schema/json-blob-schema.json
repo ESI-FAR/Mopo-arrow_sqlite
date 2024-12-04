@@ -23,13 +23,6 @@
             },
             {
               "items": {
-                "format": "date-time",
-                "type": "string"
-              },
-              "type": "array"
-            },
-            {
-              "items": {
                 "type": "number"
               },
               "type": "array"
@@ -47,7 +40,6 @@
           "enum": [
             "integer",
             "string",
-            "date-time",
             "number",
             "boolean"
           ],
@@ -99,6 +91,20 @@
                 "type": "string"
               },
               "type": "array"
+            },
+            {
+              "items": {
+                "format": "duration",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "pattern": "^(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+[,;](Y|M|D|WD|h|m|s)[0-9]+-[0-9]+$|^(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+$",
+                "type": "string"
+              },
+              "type": "array"
             }
           ],
           "title": "Values"
@@ -107,7 +113,9 @@
           "enum": [
             "integer",
             "string",
-            "date-time"
+            "date-time",
+            "duration",
+            "time-pattern"
           ],
           "title": "Value Type",
           "type": "string"
@@ -128,6 +136,78 @@
         "value_type"
       ],
       "title": "ArrayIndex",
+      "type": "object"
+    },
+    "DEArray": {
+      "description": "Dictionary encoded array",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "values": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "type": "boolean"
+              },
+              "type": "array"
+            }
+          ],
+          "title": "Values"
+        },
+        "value_type": {
+          "enum": [
+            "integer",
+            "string",
+            "number",
+            "boolean"
+          ],
+          "title": "Value Type",
+          "type": "string"
+        },
+        "indices": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Indices",
+          "type": "array"
+        },
+        "type": {
+          "const": "de_array",
+          "default": "de_array",
+          "enum": [
+            "de_array"
+          ],
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "values",
+        "value_type",
+        "indices"
+      ],
+      "title": "DEArray",
       "type": "object"
     },
     "DEIndex": {
@@ -157,6 +237,20 @@
                 "type": "string"
               },
               "type": "array"
+            },
+            {
+              "items": {
+                "format": "duration",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "pattern": "^(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+[,;](Y|M|D|WD|h|m|s)[0-9]+-[0-9]+$|^(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+$",
+                "type": "string"
+              },
+              "type": "array"
             }
           ],
           "title": "Values"
@@ -165,7 +259,9 @@
           "enum": [
             "integer",
             "string",
-            "date-time"
+            "date-time",
+            "duration",
+            "time-pattern"
           ],
           "title": "Value Type",
           "type": "string"
@@ -196,6 +292,78 @@
       "title": "DEIndex",
       "type": "object"
     },
+    "REArray": {
+      "description": "Run end encoded array",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "values": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "type": "boolean"
+              },
+              "type": "array"
+            }
+          ],
+          "title": "Values"
+        },
+        "value_type": {
+          "enum": [
+            "integer",
+            "string",
+            "number",
+            "boolean"
+          ],
+          "title": "Value Type",
+          "type": "string"
+        },
+        "run_end": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Run End",
+          "type": "array"
+        },
+        "type": {
+          "const": "re_array",
+          "default": "re_array",
+          "enum": [
+            "re_array"
+          ],
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "values",
+        "value_type",
+        "run_end"
+      ],
+      "title": "REArray",
+      "type": "object"
+    },
     "REIndex": {
       "description": "Run end encoded array",
       "properties": {
@@ -223,6 +391,20 @@
                 "type": "string"
               },
               "type": "array"
+            },
+            {
+              "items": {
+                "format": "duration",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "pattern": "^(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+[,;](Y|M|D|WD|h|m|s)[0-9]+-[0-9]+$|^(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+$",
+                "type": "string"
+              },
+              "type": "array"
             }
           ],
           "title": "Values"
@@ -231,7 +413,9 @@
           "enum": [
             "integer",
             "string",
-            "date-time"
+            "date-time",
+            "duration",
+            "time-pattern"
           ],
           "title": "Value Type",
           "type": "string"
@@ -284,7 +468,17 @@
         },
         "columns": {
           "items": {
-            "$ref": "#/$defs/Array"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/REArray"
+              },
+              {
+                "$ref": "#/$defs/DEArray"
+              },
+              {
+                "$ref": "#/$defs/Array"
+              }
+            ]
           },
           "title": "Columns",
           "type": "array"
