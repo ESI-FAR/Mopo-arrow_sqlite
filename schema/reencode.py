@@ -4,17 +4,18 @@
 
 """
 
-from collections import defaultdict
-from pathlib import Path
-from io import BytesIO
+from datetime import datetime, timedelta
 import json
+from pathlib import Path
+from typing import Literal, TypeAlias
 
 import pandas as pd
 import pyarrow as pa
 from pydantic import RootModel
+from rich.pretty import pprint
 
 from dbmap import make_records
-from models import ArrayIndex, DEIndex, REIndex, RLIndex, Table, Tables
+from models import Array, ArrayIndex, DEArray, DEIndex, REIndex, RLIndex, Table
 
 
 def _parse(row):
@@ -61,27 +62,39 @@ def re_encode(arr: ArrayIndex) -> REIndex:
 
 def de_encode(arr: ArrayIndex) -> DEIndex:
     # not using list(set(...)) to preserve order
-    dictionary = list(dict.fromkeys(arr.values))
-    indices = list(map(dictionary.index, arr.values))
-    return DEIndex(name=arr.name, values=dictionary, indices=indices)
+    values = list(dict.fromkeys(arr.values))
+    indices = list(map(values.index, arr.values))
+    return DEIndex(name=arr.name, values=values, indices=indices)
 
 
-def to_tables(df: pd.DataFrame) -> Tables:
-    grouped = df.groupby("metric")
-    tbls = []
-    for grp in grouped.groups:
-        _df = df.loc[grouped.groups[grp]]
-        _tbl = defaultdict(list)
-        for col in _df.columns:
-            arr = {"name": col, "values": _df[col]}
-            if col == "value":
-                _tbl["columns"].append(arr)
-            else:
-                if col == "metric":
-                    arr = de_encode(ArrayIndex(**arr))
-                _tbl["indices"].append(arr)
-        tbls.append(_tbl)
-    return Tables(batches=tbls)
+def to_tables(df: pd.DataFrame) -> Table:
+    indices, columns = [], []
+    for colname in df.columns:
+        col = df[colname]
+        match col.name, col.dtype.type:
+            case "value", t if t in (str, bool):
+                col = col.astype("category")
+                arr = DEArray(
+                    name=col.name,
+                    values=col.cat.categories,
+                    indices=col.cat.codes,
+                )
+                columns.append(arr)
+            case "value", _:
+                arr = Array(name=col.name, values=col.values)
+                columns.append(arr)
+            case _, t if t in (str, bool):
+                col = col.astype("category")
+                arr = DEIndex(
+                    name=col.name,
+                    values=col.cat.categories,
+                    indices=col.cat.codes,
+                )
+                indices.append(arr)
+            case _, _:
+                arr = ArrayIndex(name=col.name, values=col.values)
+                indices.append(arr)
+    return Table(indices=indices, columns=columns)
 
 
 if __name__ == "__main__":
@@ -96,4 +109,4 @@ if __name__ == "__main__":
     tbls = to_tables(df)
     # NOTE: using pydantic is optional here, we can also write our own
     # JSON serialisation if we want, probably all we need is `asdict(...)`.
-    Path(opts.new_json).write_text(RootModel[Tables](tbls).model_dump_json())
+    Path(opts.new_json).write_text(RootModel[Table](tbls).model_dump_json())
