@@ -69,7 +69,7 @@ Floats: TypeAlias = list[float]
 
 
 ValueType: TypeAlias = Literal[
-    "string", "integer", "number", "boolean", "date-time", "duration"
+    "string", "integer", "number", "boolean", "date-time", "duration", "time-pattern"
 ]
 type_map: dict[type, ValueType] = {
     str: "string",
