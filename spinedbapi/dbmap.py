@@ -1,7 +1,8 @@
 from argparse import ArgumentParser
+from datetime import datetime
+from enum import Enum, auto
 import json
-from string import ascii_lowercase
-from random import choices
+import re
 from typing import cast
 import weakref
 
@@ -11,43 +12,88 @@ from spinedb_api import DatabaseMapping
 from spinedb_api.temp_id import TempId
 
 
-def idx_name(json_doc: dict, lvls: dict) -> str:
-    """Read index_name, if absent, generate one"""
-    try:
-        name: str = json_doc["index_name"]
-    except KeyError:
-        while (name := "".join(choices(ascii_lowercase, k=5))) in lvls:
-            pass
-    finally:
-        return name
-
-
 def json_loads_ts(json_str: str | bytes):
     return pd.Series(json.loads(json_str)["data"])
 
 
-def make_records(json_doc: dict, idx_lvls: dict, res: list[dict]) -> list[dict]:
+SEQ_PAT = re.compile(r"(t|p)([0-9]+)")
+
+
+class IndexType(Enum):
+    Timestamp = auto()
+    Sequence = auto()
+    Generic = auto()
+
+
+def make_records(
+    json_doc: dict | int | float | str,
+    idx_lvls: dict,
+    res: list[dict],
+    *,
+    idx_name: str = "default",
+) -> list[dict]:
     """Parse time-series w/ a multi-index stored as a nested map
 
     Ask Suvayu for the example DB
 
     """
 
-    if isinstance(json_doc, dict) and "data" in json_doc:
-        match json_doc:
-            case {"data": [[str(), dict() | float() | int()], *_] as data}:
-                for key, val in data:
-                    index_name = idx_name(json_doc, idx_lvls)
-                    make_records(val, {**idx_lvls, index_name: key}, res)
-            case {"data": [float() | int(), *_] as data, **opts}:
-                for val in json_doc["data"]:
-                    index_name = idx_name(json_doc, idx_lvls)
-                    make_records(val, {**idx_lvls, index_name: key}, res)
-        return res
-    else:
-        idx_lvls["value"] = json_doc
-        res.append(idx_lvls)
-        return res
+    match json_doc:
+        case {"data": dict() as data, "type": "time_series", **_r}:
+            index_name = json_doc.get("index_name", "time")
+            for key, val in data.items():
+                key = datetime.fromisoformat(key)
+                make_records(val, {**idx_lvls, index_name: key}, res)
+        case {
+            "data": [[str(), float() | int()], *_] as data,
+            "type": "time_series",
+            **_r,
+        }:
+            index_name = json_doc.get("index_name", "time")
+            for key, val in data:
+                key = datetime.fromisoformat(key)
+                make_records(val, {**idx_lvls, index_name: key}, res)
+        case {"data": [float() | int(), *_] as data, "type": "time_series", **_r}:
+            index_name = json_doc.get("index_name", "time")
+            match json_doc:
+                case {
+                    "index": {
+                        "start": start,
+                        "resolution": freq,
+                        "ignore_year": bool(),
+                        "repeat": bool(),
+                    },
+                    **_r,
+                }:
+                    index = pd.date_range(start=start, freq=freq, periods=len(data))
+                case _:
+                    index = pd.date_range(
+                        start="2000-01-01", periods=len(data), freq="1h"
+                    )
+            for time, val in zip(index, data):
+                make_records(val, {**idx_lvls, index_name: time, "value": val}, res)
+        case {
+            "data": [[str(), dict() | float() | int()], *_] as data,
+            **_r,
+        }:
+            if m := SEQ_PAT.match(data[0][0]):
+                idx_type = IndexType.Sequence
+                index_name = json_doc.get(
+                    "index_name", "period" if "p" == m.group(1) else "seq"
+                )
+            else:
+                idx_type = IndexType.Generic
+                index_name = json_doc.get("index_name", idx_name)
+            for key, val in data:
+                if idx_type == IndexType.Sequence:
+                    m = SEQ_PAT.match(key)
+                    assert m is not None
+                    key = int(m.group(2))
+                make_records(val, {**idx_lvls, index_name: key}, res)
+        case int() | float() | str() | bool():
+            idx_lvls["value"] = json_doc
+            res.append(idx_lvls)
+    return res
 
 
 def json_loads_multi_dim_ts(json_str: str | bytes):

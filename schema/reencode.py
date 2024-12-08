@@ -12,29 +12,22 @@
 
 """
 
-from datetime import datetime, timedelta
 import json
 from pathlib import Path
-from typing import Literal, TypeAlias
 
 import pandas as pd
 import pyarrow as pa
 from pydantic import RootModel
 
-# from rich.pretty import pprint
+from rich.pretty import pprint
 
 from dbmap import make_records
 from models import Array, ArrayIndex, DEArray, DEIndex, REIndex, RLIndex, Table
 
 
-def _parse(row):
-    a, b, c = list(row.values())
-    return {"metric": a, "seq": int(b.lstrip("t")), "value": c}
-
-
 def to_df(json_doc: dict):
-    data = make_records(json_doc, {}, [])
-    tbl = pa.Table.from_pylist([_parse(r) for r in data])
+    data = make_records(json_doc, {}, [], idx_name="metric")
+    tbl = pa.Table.from_pylist(data)
     df = tbl.to_pandas(types_mapper=pd.ArrowDtype)
     return df
 
