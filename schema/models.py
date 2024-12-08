@@ -2,6 +2,7 @@
 # /// script
 # requires-python = ">=3.10"
 # dependencies = [
+#   "pandas[performance]>=2",
 #   "pydantic>=2",
 # ]
 # ///
@@ -15,6 +16,7 @@
 from datetime import datetime, timedelta
 from typing import Annotated, Literal, Type, TypeAlias
 
+import pandas as pd
 from pydantic import RootModel
 from pydantic.dataclasses import dataclass
 from pydantic.dataclasses import Field as field
@@ -77,7 +79,9 @@ type_map: dict[type, ValueType] = {
     float: "number",
     bool: "boolean",
     datetime: "date-time",
+    pd.Timestamp: "date-time",
     timedelta: "duration",
+    pd.Timedelta: "duration",
     TimePattern: "time-pattern",
 }
 
