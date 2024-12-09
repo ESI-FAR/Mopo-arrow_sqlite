@@ -14,7 +14,13 @@ if __name__ == "__main__":
 
     files = list(map(Path, opts.files))
     db = DatabaseMapping(f"sqlite:///{opts.db}")
-    items = db.get_items("parameter_value", entity_name="flow__node_wind__80NO")
+
+    items = db.get_items("parameter_value", entity_class_name="flow__node")
     for item, infile in zip(items, files):
         item.update(value=infile.read_bytes())
-    db.commit_session("Update flow__node_wind__80NO to new format")
+    db.commit_session("Update flow__node to new format")
+
+    # items = db.get_items("parameter_value", entity_name="flow__node_wind__80NO")
+    # for item, infile in zip(items, files):
+    #     item.update(value=infile.read_bytes())
+    # db.commit_session("Update flow__node_wind__80NO to new format")
