@@ -12,6 +12,7 @@
 
 """
 
+from datetime import datetime, timedelta
 import json
 from pathlib import Path
 
@@ -22,7 +23,7 @@ from pydantic import RootModel
 from rich.pretty import pprint
 
 from dbmap import make_records
-from models import Array, ArrayIndex, DEArray, DEIndex, REIndex, RLIndex, Table
+from models import Array, ArrayIndex, DEArray, DEIndex, REArray, REIndex, RLIndex, Table
 
 
 def to_df(json_doc: dict):
@@ -69,34 +70,38 @@ def de_encode(arr: ArrayIndex) -> DEIndex:
     return DEIndex(name=arr.name, values=values, indices=indices)
 
 
+def series_to_col(col: pd.Series) -> ArrayIndex | DEIndex | Array | DEArray:
+    match col.name, col.dtype.type:
+        case "value", t if issubclass(t, bool | str) or t == object:
+            print(f"idx_type: {t}, value: {col.iloc[:3]}")
+            col = col.astype("category")
+            arr = DEArray(
+                name=col.name,
+                values=col.cat.categories,
+                indices=col.cat.codes,
+            )
+        case "value", t if issubclass(t, int | float):
+            arr = Array(name=col.name, values=col.values)
+        case _, t if issubclass(t, str) or t == object:
+            print(f"type: {t}, value: {col.iloc[:3]}")
+            col = col.astype("category")
+            arr = DEIndex(
+                name=col.name,
+                values=col.cat.categories,
+                indices=col.cat.codes,
+            )
+        case _, t if issubclass(t, int | str | datetime | timedelta) or t == object:
+            arr = ArrayIndex(name=col.name, values=col.values)
+        case _, _:
+            print(f"unknown type {t}")
+            arr = ArrayIndex(name=col.name, values=col.values)
+    return arr
+
+
 def to_tables(df: pd.DataFrame) -> Table:
-    indices, columns = [], []
-    for colname in df.columns:
-        col = df[colname]
-        match col.name, col.dtype.type:
-            case "value", t if t in (str, bool):
-                col = col.astype("category")
-                arr = DEArray(
-                    name=col.name,
-                    values=col.cat.categories,
-                    indices=col.cat.codes,
-                )
-                columns.append(arr)
-            case "value", _:
-                arr = Array(name=col.name, values=col.values)
-                columns.append(arr)
-            case _, t if t in (str, bool):
-                col = col.astype("category")
-                arr = DEIndex(
-                    name=col.name,
-                    values=col.cat.categories,
-                    indices=col.cat.codes,
-                )
-                indices.append(arr)
-            case _, _:
-                arr = ArrayIndex(name=col.name, values=col.values)
-                indices.append(arr)
-    return Table(indices=indices, columns=columns)
+    if df.empty:
+        return []
+    return [series_to_col(df[colname]) for colname in df.columns]
 
 
 if __name__ == "__main__":

@@ -180,13 +180,7 @@ class Array(_TypeInferMixin):
     type: Literal["array"] = "array"
 
 
-@dataclass(frozen=True)
-class Table:
-    """A table consisting of a set of columns"""
-
-    indices: list[REIndex | DEIndex | ArrayIndex]
-    columns: list[REArray | DEArray | Array]
-    type: Literal["table"] = "table"
+Table: TypeAlias = list[REIndex | DEIndex | ArrayIndex | REArray | DEArray | Array]
 
 
 if __name__ == "__main__":

@@ -49,9 +49,6 @@
         "type": {
           "const": "array",
           "default": "array",
-          "enum": [
-            "array"
-          ],
           "title": "Type",
           "type": "string"
         }
@@ -123,9 +120,6 @@
         "type": {
           "const": "array_index",
           "default": "array_index",
-          "enum": [
-            "array_index"
-          ],
           "title": "Type",
           "type": "string"
         }
@@ -187,9 +181,6 @@
         "type": {
           "const": "de_array",
           "default": "de_array",
-          "enum": [
-            "de_array"
-          ],
           "title": "Type",
           "type": "string"
         }
@@ -262,9 +253,6 @@
         "type": {
           "const": "de_index",
           "default": "de_index",
-          "enum": [
-            "de_index"
-          ],
           "title": "Type",
           "type": "string"
         }
@@ -327,9 +315,6 @@
         "type": {
           "const": "re_array",
           "default": "re_array",
-          "enum": [
-            "re_array"
-          ],
           "title": "Type",
           "type": "string"
         }
@@ -402,9 +387,6 @@
         "type": {
           "const": "re_index",
           "default": "re_index",
-          "enum": [
-            "re_index"
-          ],
           "title": "Type",
           "type": "string"
         }
@@ -417,62 +399,30 @@
       ],
       "title": "REIndex",
       "type": "object"
-    },
-    "Table": {
-      "description": "A table consisting of a set of columns",
-      "properties": {
-        "indices": {
-          "items": {
-            "anyOf": [
-              {
-                "$ref": "#/$defs/REIndex"
-              },
-              {
-                "$ref": "#/$defs/DEIndex"
-              },
-              {
-                "$ref": "#/$defs/ArrayIndex"
-              }
-            ]
-          },
-          "title": "Indices",
-          "type": "array"
-        },
-        "columns": {
-          "items": {
-            "anyOf": [
-              {
-                "$ref": "#/$defs/REArray"
-              },
-              {
-                "$ref": "#/$defs/DEArray"
-              },
-              {
-                "$ref": "#/$defs/Array"
-              }
-            ]
-          },
-          "title": "Columns",
-          "type": "array"
-        },
-        "type": {
-          "const": "table",
-          "default": "table",
-          "enum": [
-            "table"
-          ],
-          "title": "Type",
-          "type": "string"
-        }
-      },
-      "required": [
-        "indices",
-        "columns"
-      ],
-      "title": "Table",
-      "type": "object"
     }
   },
-  "$ref": "#/$defs/Table",
-  "title": "RootModel[Table]"
+  "items": {
+    "anyOf": [
+      {
+        "$ref": "#/$defs/REIndex"
+      },
+      {
+        "$ref": "#/$defs/DEIndex"
+      },
+      {
+        "$ref": "#/$defs/ArrayIndex"
+      },
+      {
+        "$ref": "#/$defs/REArray"
+      },
+      {
+        "$ref": "#/$defs/DEArray"
+      },
+      {
+        "$ref": "#/$defs/Array"
+      }
+    ]
+  },
+  "title": "RootModel[list[Union[REIndex, DEIndex, ArrayIndex, REArray, DEArray, Array]]]",
+  "type": "array"
 }
