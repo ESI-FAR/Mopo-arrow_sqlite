@@ -2,7 +2,7 @@
 # /// script
 # requires-python = ">=3.10"
 # dependencies = [
-#   "pandas[performance]>=2",
+#   "pandas>=2",
 #   "pydantic>=2",
 # ]
 # ///
