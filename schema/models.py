@@ -59,11 +59,10 @@ Strings: TypeAlias = list[str]
 Datetimes: TypeAlias = list[datetime]
 Timedeltas: TypeAlias = list[timedelta]
 
-time_pat_re = r"(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+"
 # FIXME: how to do w/o Pydantic?
-TimePattern = Annotated[
-    str, StringConstraints(pattern=rf"^{time_pat_re}[,;]{time_pat_re}$|^{time_pat_re}$")
-]
+time_pat_re = r"(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+"
+time_pat_re = rf"^{time_pat_re}[,;]{time_pat_re}$|^{time_pat_re}$"
+TimePattern = Annotated[str, StringConstraints(pattern=time_pat_re)]
 TimePatterns: TypeAlias = list[TimePattern]
 
 Booleans: TypeAlias = list[bool]
