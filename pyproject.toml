@@ -1,6 +1,11 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
-name = "arrow-sql-expts"
+name = "arrow-expts"
 version = "0.1.dev"
+readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.10"  # easier type hints, pattern matching
 dependencies = [
      "adbc_driver_manager",
@@ -14,8 +19,28 @@ dependencies = [
      "sqlalchemy",
 ]
 
+[tool.hatch.metadata.source]
+include = ["arrow_expts"]
+exclude = ["data", "sql_scripts", "bin"]
+
+[tool.hatch.metadata.packages.find]
+where = ["arrow_expts"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--import-mode=importlib", "-q", "-ra"]
+
+[tool.black]
+include = '\.pyi?$'
+extend-exclude ='''
+(
+  ^test/data
+)
+'''
+
 [tool.mypy]
 ignore_missing_imports = true
+check_untyped_defs = true
 plugins = ["pydantic.mypy"]
 
 [tool.pydantic-mypy]

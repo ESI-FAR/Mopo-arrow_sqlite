@@ -22,8 +22,17 @@ from pydantic import RootModel
 
 from rich.pretty import pprint
 
-from dbmap import make_records
-from models import Array, ArrayIndex, DEArray, DEIndex, REArray, REIndex, RLIndex, Table
+from ..spine.dbmap import make_records
+from .models import (
+    Array,
+    ArrayIndex,
+    DEArray,
+    DEIndex,
+    REArray,
+    REIndex,
+    RLIndex,
+    Table,
+)
 
 
 def to_df(json_doc: dict):
