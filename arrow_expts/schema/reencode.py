@@ -81,7 +81,7 @@ def de_encode(arr: ArrayIndex) -> DEIndex:
 
 def series_to_col(col: pd.Series) -> ArrayIndex | DEIndex | Array | DEArray:
     match col.name, col.dtype.type:
-        case "value", t if issubclass(t, bool | str) or t == object:
+        case "value", t if issubclass(t, bool | str) or t is object:
             print(f"idx_type: {t}, value: {col.iloc[:3]}")
             col = col.astype("category")
             arr = DEArray(
@@ -91,7 +91,7 @@ def series_to_col(col: pd.Series) -> ArrayIndex | DEIndex | Array | DEArray:
             )
         case "value", t if issubclass(t, int | float):
             arr = Array(name=col.name, values=col.values)
-        case _, t if issubclass(t, str) or t == object:
+        case _, t if issubclass(t, str) or t is object:
             print(f"type: {t}, value: {col.iloc[:3]}")
             col = col.astype("category")
             arr = DEIndex(
@@ -99,7 +99,7 @@ def series_to_col(col: pd.Series) -> ArrayIndex | DEIndex | Array | DEArray:
                 values=col.cat.categories,
                 indices=col.cat.codes,
             )
-        case _, t if issubclass(t, int | str | datetime | timedelta) or t == object:
+        case _, t if issubclass(t, int | str | datetime | timedelta) or t is object:
             arr = ArrayIndex(name=col.name, values=col.values)
         case _, _:
             print(f"unknown type {t}")
