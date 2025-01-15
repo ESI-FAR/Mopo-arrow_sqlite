@@ -1,0 +1,41 @@
+{
+  "type": "map",
+  "index_type": "str",
+  "index_name": "stochastic_scenario",
+  "data": [
+    ["scenario_1",
+      {"type": "map", "index_type": "date_time", "index_name": "analysis_time", "data": [
+        [
+          "2099-01-01T00:00", {
+            "type": "time_series",
+            "data": [2, 3],
+            "index": {
+              "start": "2099-01-01T00:00",
+              "resolution": "18 hours",
+              "ignore_year": false,
+              "repeat": true
+            }
+          }
+        ],
+        [
+          "2099-01-01T12:00", {
+            "type": "time_series",
+            "data": [2.4, 4],
+            "index": {
+              "start": "2099-01-01T12:00",
+              "resolution": "6 hours",
+              "ignore_year": false,
+              "repeat": true
+            }
+          }
+        ]
+      ]}
+    ],
+    ["scenario_2",
+      {"type": "map", "index_type": "date_time", "index_name": "analysis_time", "data": [
+        ["2099-01-01T00:00", 2.3],
+        ["2099-01-01T12:00", 3]
+      ]}
+    ]
+  ]
+}

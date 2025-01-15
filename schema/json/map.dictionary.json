@@ -1,0 +1,16 @@
+{
+  "type": "map",
+  "index_type": "date_time",
+  "data": {
+    "2010-01-01T00:00": {
+      "type": "map",
+      "index_type": "duration",
+      "data": [["1D", -1.0], ["1D", -1.5]]
+    },
+    "2010-02-01T00:00": {
+      "type": "map",
+      "index_type": "duration",
+      "data": [["1 month", 2.3], ["2 months", 2.5]]
+    }
+  }
+}
