@@ -18,6 +18,27 @@ def json_loads_ts(json_str: str | bytes):
 
 SEQ_PAT = re.compile(r"(t|p)([0-9]+)")
 
+def filter_frequencies(freq: str) -> str:
+    # not very robust yet
+    return freq \
+        .replace("years", "Y") \
+        .replace("year", "Y") \
+        .replace("months", "M") \
+        .replace("month", "M") \
+        .replace("quarters", "Q") \
+        .replace("quarter", "Q") \
+        .replace("weeks", "W") \
+        .replace("week", "W") \
+        .replace("hours", "h") \
+        .replace("hour", "h") \
+        .replace("minutes", "min") \
+        .replace("minute", "min") \
+        .replace("seconds", "s") \
+        .replace("second", "s") \
+        .replace("microseconds", "us") \
+        .replace("microsecond", "us") \
+        .replace("nanoseconds", "ns") \
+        .replace("nanosecond", "ns")
 
 class IndexType(Enum):
     Timestamp = auto()
@@ -39,8 +60,28 @@ def make_records(
     """
 
     match json_doc:
+        # maps
+        case {"data": list() as data, "type": "map", **_r}:
+            index_name = json_doc.get("index_name", "time")  # use "time" if "index_name" does not exist
+            index_type = json_doc.get("index_type")
+            for key, val in data:
+                if index_type == "date_time":
+                    key = datetime.fromisoformat(key)
+                if index_type == "duration":
+                    key = pd.Timedelta(key)
+                make_records(val, {**idx_lvls, index_name: key}, res)
+        case {"data": dict() as data, "type": "map", **_r}:
+            index_name = json_doc.get("index_name", "time")  # use "time" if "index_name" does not exist
+            index_type = json_doc.get("index_type")
+            for key, val in data.items():
+                if index_type == "date_time":
+                    key = datetime.fromisoformat(key)
+                if index_type == "duration":
+                    key = pd.Timedelta(key)
+                make_records(val, {**idx_lvls, index_name: key}, res)
+        # time series
         case {"data": dict() as data, "type": "time_series", **_r}:
-            index_name = json_doc.get("index_name", "time")
+            index_name = json_doc.get("index_name", "time")  # use "time" if "index_name" does not exist
             for key, val in data.items():
                 key = datetime.fromisoformat(key)
                 make_records(val, {**idx_lvls, index_name: key}, res)
@@ -49,12 +90,12 @@ def make_records(
             "type": "time_series",
             **_r,
         }:
-            index_name = json_doc.get("index_name", "time")
+            index_name = json_doc.get("index_name", "time")  # use "time" if "index_name" does not exist
             for key, val in data:
                 key = datetime.fromisoformat(key)
                 make_records(val, {**idx_lvls, index_name: key}, res)
         case {"data": [float() | int(), *_] as data, "type": "time_series", **_r}:
-            index_name = json_doc.get("index_name", "time")
+            index_name = json_doc.get("index_name", "time")  # use "time" if "index_name" does not exist
             match json_doc:
                 case {
                     "index": {
@@ -65,6 +106,7 @@ def make_records(
                     },
                     **_r,
                 }:
+                    freq = filter_frequencies(freq)
                     index = pd.date_range(start=start, freq=freq, periods=len(data))
                 case _:
                     index = pd.date_range(
@@ -83,16 +125,19 @@ def make_records(
                 )
             else:
                 idx_type = IndexType.Generic
-                index_name = json_doc.get("index_name", idx_name)
+                index_name = json_doc.get("index_name", idx_name)  # use idx_name if "index_name" does not exist
             for key, val in data:
                 if idx_type == IndexType.Sequence:
                     m = SEQ_PAT.match(key)
                     assert m is not None
                     key = int(m.group(2))
                 make_records(val, {**idx_lvls, index_name: key}, res)
+        # values
         case int() | float() | str() | bool():
             idx_lvls["value"] = json_doc
             res.append(idx_lvls)
+        case _:
+            raise NotImplementedError("Can't match this JSON structure yet.")
     return res
 
 
