@@ -1,0 +1,10 @@
+{
+  "type": "time_series",
+  "data": [1, 2, 3, 5, 8],
+  "index": {
+    "start": "2019-01-01T00:00",
+    "resolution": "30 minutes",
+    "ignore_year": false,
+    "repeat": true
+  }
+}

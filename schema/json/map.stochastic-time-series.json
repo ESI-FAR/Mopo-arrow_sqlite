@@ -1,0 +1,29 @@
+{
+  "type": "map",
+  "index_type": "date_time",
+  "index_name": "Forecast time",
+  "data": [
+    ["2020-04-17T08:00",
+     {"type": "map", "index_type": "date_time", "index_name": "Target time", "data": [
+       [
+         "2020-04-17T08:00", {"type": "map",
+                              "index_type": "float",
+                              "index_name": "Stochastic scenario",
+                              "data": [[0, 23.0], [1, 5.5]]}
+       ],
+       [
+         "2020-04-17T09:00", {"type": "map",
+                              "index_type": "float",
+                              "index_name": "Stochastic scenario",
+                              "data": [[0, 24.0], [1, 6.6]]}
+       ],
+       [
+         "2020-04-17T10:00", {"type": "map",
+                              "index_type": "float",
+                              "index_name": "Stochastic scenario",
+                              "data": [[0, 25.0], [1, 7.7]]}
+       ]
+     ]}
+    ]
+  ]
+}

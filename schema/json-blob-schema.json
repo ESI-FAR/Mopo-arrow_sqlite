@@ -1,0 +1,428 @@
+{
+  "$defs": {
+    "Array": {
+      "description": "Array",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "values": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "type": "boolean"
+              },
+              "type": "array"
+            }
+          ],
+          "title": "Values"
+        },
+        "value_type": {
+          "enum": [
+            "integer",
+            "string",
+            "number",
+            "boolean"
+          ],
+          "title": "Value Type",
+          "type": "string"
+        },
+        "type": {
+          "const": "array",
+          "default": "array",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "values",
+        "value_type"
+      ],
+      "title": "Array",
+      "type": "object"
+    },
+    "ArrayIndex": {
+      "description": "Any array that is an index, e.g. a sequence, timestamps, labels",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "values": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "format": "duration",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "pattern": "^(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+[,;](Y|M|D|WD|h|m|s)[0-9]+-[0-9]+$|^(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+$",
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "title": "Values"
+        },
+        "value_type": {
+          "enum": [
+            "integer",
+            "string",
+            "date-time",
+            "duration",
+            "time-pattern"
+          ],
+          "title": "Value Type",
+          "type": "string"
+        },
+        "type": {
+          "const": "array_index",
+          "default": "array_index",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "values",
+        "value_type"
+      ],
+      "title": "ArrayIndex",
+      "type": "object"
+    },
+    "DEArray": {
+      "description": "Dictionary encoded array",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "indices": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Indices",
+          "type": "array"
+        },
+        "values": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "type": "boolean"
+              },
+              "type": "array"
+            }
+          ],
+          "title": "Values"
+        },
+        "value_type": {
+          "enum": [
+            "string",
+            "number",
+            "boolean"
+          ],
+          "title": "Value Type",
+          "type": "string"
+        },
+        "type": {
+          "const": "de_array",
+          "default": "de_array",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "indices",
+        "values",
+        "value_type"
+      ],
+      "title": "DEArray",
+      "type": "object"
+    },
+    "DEIndex": {
+      "description": "Dictionary encoded array",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "indices": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Indices",
+          "type": "array"
+        },
+        "values": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "format": "duration",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "pattern": "^(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+[,;](Y|M|D|WD|h|m|s)[0-9]+-[0-9]+$|^(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+$",
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "title": "Values"
+        },
+        "value_type": {
+          "enum": [
+            "string",
+            "date-time",
+            "duration",
+            "time-pattern"
+          ],
+          "title": "Value Type",
+          "type": "string"
+        },
+        "type": {
+          "const": "de_index",
+          "default": "de_index",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "indices",
+        "values",
+        "value_type"
+      ],
+      "title": "DEIndex",
+      "type": "object"
+    },
+    "REArray": {
+      "description": "Run end encoded array",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "run_end": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Run End",
+          "type": "array"
+        },
+        "values": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "type": "boolean"
+              },
+              "type": "array"
+            }
+          ],
+          "title": "Values"
+        },
+        "value_type": {
+          "enum": [
+            "string",
+            "number",
+            "boolean"
+          ],
+          "title": "Value Type",
+          "type": "string"
+        },
+        "type": {
+          "const": "re_array",
+          "default": "re_array",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "run_end",
+        "values",
+        "value_type"
+      ],
+      "title": "REArray",
+      "type": "object"
+    },
+    "REIndex": {
+      "description": "Run end encoded array",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "run_end": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Run End",
+          "type": "array"
+        },
+        "values": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "format": "duration",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "pattern": "^(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+[,;](Y|M|D|WD|h|m|s)[0-9]+-[0-9]+$|^(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+$",
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "title": "Values"
+        },
+        "value_type": {
+          "enum": [
+            "string",
+            "date-time",
+            "duration",
+            "time-pattern"
+          ],
+          "title": "Value Type",
+          "type": "string"
+        },
+        "type": {
+          "const": "re_index",
+          "default": "re_index",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "run_end",
+        "values",
+        "value_type"
+      ],
+      "title": "REIndex",
+      "type": "object"
+    }
+  },
+  "items": {
+    "anyOf": [
+      {
+        "$ref": "#/$defs/REIndex"
+      },
+      {
+        "$ref": "#/$defs/DEIndex"
+      },
+      {
+        "$ref": "#/$defs/ArrayIndex"
+      },
+      {
+        "$ref": "#/$defs/REArray"
+      },
+      {
+        "$ref": "#/$defs/DEArray"
+      },
+      {
+        "$ref": "#/$defs/Array"
+      }
+    ]
+  },
+  "title": "RootModel[list[Union[REIndex, DEIndex, ArrayIndex, REArray, DEArray, Array]]]",
+  "type": "array"
+}

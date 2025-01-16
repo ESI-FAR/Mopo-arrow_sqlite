@@ -2,7 +2,9 @@ adbc_driver_manager
 adbc_driver_sqlite
 adbc_driver_postgresql
 ipython
-pandas[performance]
+pandas
 pyarrow
+pydantic
+pytest
 rich
 spinedb-api

@@ -1,7 +1,8 @@
 from argparse import ArgumentParser
+from datetime import datetime
+from enum import Enum, auto
 import json
-from string import ascii_lowercase
-from random import choices
+import re
 from typing import cast
 import weakref
 
@@ -15,32 +16,129 @@ def json_loads_ts(json_str: str | bytes):
     return pd.Series(json.loads(json_str)["data"])
 
 
-def make_records(json_doc: dict, idx_lvls: dict, res: list[dict]) -> list[dict]:
+SEQ_PAT = re.compile(r"(t|p)([0-9]+)")
+
+def filter_frequencies(freq: str) -> str:
+    # not very robust yet
+    return freq \
+        .replace("years", "Y") \
+        .replace("year", "Y") \
+        .replace("months", "M") \
+        .replace("month", "M") \
+        .replace("quarters", "Q") \
+        .replace("quarter", "Q") \
+        .replace("weeks", "W") \
+        .replace("week", "W") \
+        .replace("hours", "h") \
+        .replace("hour", "h") \
+        .replace("minutes", "min") \
+        .replace("minute", "min") \
+        .replace("seconds", "s") \
+        .replace("second", "s") \
+        .replace("microseconds", "us") \
+        .replace("microsecond", "us") \
+        .replace("nanoseconds", "ns") \
+        .replace("nanosecond", "ns")
+
+class IndexType(Enum):
+    Timestamp = auto()
+    Sequence = auto()
+    Generic = auto()
+
+
+def make_records(
+    json_doc: dict | int | float | str,
+    idx_lvls: dict,
+    res: list[dict],
+    *,
+    idx_name: str = "default",
+) -> list[dict]:
     """Parse time-series w/ a multi-index stored as a nested map
 
     Ask Suvayu for the example DB
 
     """
 
-    def idx_name(json_doc: dict, lvls: dict) -> str:
-        """Read index_name, if abset, generate one"""
-        try:
-            name: str = json_doc["index_name"]
-        except KeyError:
-            while (name := "".join(choices(ascii_lowercase, k=5))) in lvls:
-                pass
-        finally:
-            return name
-
-    if isinstance(json_doc, dict) and "data" in json_doc:
-        for key, val in json_doc["data"]:
-            index_name = idx_name(json_doc, idx_lvls)
-            make_records(val, {**idx_lvls, index_name: key}, res)
-        return res
-    else:
-        idx_lvls["value"] = json_doc
-        res.append(idx_lvls)
-        return res
+    match json_doc:
+        # maps
+        case {"data": list() as data, "type": "map", **_r}:
+            index_name = json_doc.get("index_name", "time")  # use "time" if "index_name" does not exist
+            index_type = json_doc.get("index_type")
+            for key, val in data:
+                if index_type == "date_time":
+                    key = datetime.fromisoformat(key)
+                if index_type == "duration":
+                    key = pd.Timedelta(key)
+                make_records(val, {**idx_lvls, index_name: key}, res)
+        case {"data": dict() as data, "type": "map", **_r}:
+            index_name = json_doc.get("index_name", "time")  # use "time" if "index_name" does not exist
+            index_type = json_doc.get("index_type")
+            for key, val in data.items():
+                if index_type == "date_time":
+                    key = datetime.fromisoformat(key)
+                if index_type == "duration":
+                    key = pd.Timedelta(key)
+                make_records(val, {**idx_lvls, index_name: key}, res)
+        # time series
+        case {"data": dict() as data, "type": "time_series", **_r}:
+            index_name = json_doc.get("index_name", "time")  # use "time" if "index_name" does not exist
+            for key, val in data.items():
+                key = datetime.fromisoformat(key)
+                make_records(val, {**idx_lvls, index_name: key}, res)
+        case {
+            "data": [[str(), float() | int()], *_] as data,
+            "type": "time_series",
+            **_r,
+        }:
+            index_name = json_doc.get("index_name", "time")  # use "time" if "index_name" does not exist
+            for key, val in data:
+                key = datetime.fromisoformat(key)
+                make_records(val, {**idx_lvls, index_name: key}, res)
+        case {"data": [float() | int(), *_] as data, "type": "time_series", **_r}:
+            index_name = json_doc.get("index_name", "time")  # use "time" if "index_name" does not exist
+            match json_doc:
+                case {
+                    "index": {
+                        "start": start,
+                        "resolution": freq,
+                        "ignore_year": bool(),
+                        "repeat": bool(),
+                    },
+                    **_r,
+                }:
+                    freq = filter_frequencies(freq)
+                    index = pd.date_range(start=start, freq=freq, periods=len(data))
+                case _:
+                    index = pd.date_range(
+                        start="2000-01-01", periods=len(data), freq="1h"
+                    )
+            for time, val in zip(index, data):
+                make_records(val, {**idx_lvls, index_name: time, "value": val}, res)
+        case {
+            "data": [[str(), dict() | float() | int()], *_] as data,
+            **_r,
+        }:
+            if m := SEQ_PAT.match(data[0][0]):
+                idx_type = IndexType.Sequence
+                index_name = json_doc.get(
+                    "index_name", "period" if "p" == m.group(1) else "seq"
+                )
+            else:
+                idx_type = IndexType.Generic
+                index_name = json_doc.get("index_name", idx_name)  # use idx_name if "index_name" does not exist
+            for key, val in data:
+                if idx_type == IndexType.Sequence:
+                    m = SEQ_PAT.match(key)
+                    assert m is not None
+                    key = int(m.group(2))
+                make_records(val, {**idx_lvls, index_name: key}, res)
+        # values
+        case int() | float() | str() | bool():
+            idx_lvls["value"] = json_doc
+            res.append(idx_lvls)
+        case _:
+            raise NotImplementedError("Can't match this JSON structure yet.")
+    return res
 
 
 def json_loads_multi_dim_ts(json_str: str | bytes):
