@@ -89,7 +89,7 @@ def series_to_col(col: pd.Series) -> ArrayIndex | DEIndex | Array | DEArray:
                 values=col.cat.categories,
                 indices=col.cat.codes,
             )
-        case "value", t if issubclass(t, int | float):
+        case _, t if issubclass(t, int | float):
             arr = Array(name=col.name, values=col.values)
         case _, t if issubclass(t, str) or t is object:
             print(f"type: {t}, value: {col.iloc[:3]}")
