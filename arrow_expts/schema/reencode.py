@@ -102,8 +102,7 @@ def series_to_col(col: pd.Series) -> ArrayIndex | DEIndex | Array | DEArray:
         case _, t if issubclass(t, int | str | datetime | timedelta) or t is object:
             arr = ArrayIndex(name=col.name, values=col.values)
         case _, _:
-            print(f"unknown type {t}")
-            arr = ArrayIndex(name=col.name, values=col.values)
+            raise NotImplementedError(f"unknown type {t}")
     return arr
 
 
