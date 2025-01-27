@@ -20,7 +20,7 @@ SEQ_PAT = re.compile(r"(t|p)([0-9]+)")
 
 def filter_frequencies(freq: str) -> str:
     # not very robust yet
-    return freq \
+    filtered_freq  = freq \
         .replace("years", "Y") \
         .replace("year", "Y") \
         .replace("months", "M") \
@@ -39,6 +39,11 @@ def filter_frequencies(freq: str) -> str:
         .replace("microsecond", "us") \
         .replace("nanoseconds", "ns") \
         .replace("nanosecond", "ns")
+    if re.compile("^[0-9]+$").match(filtered_freq):
+        # If frequency is an integer, the implied unit is "minutes"
+        return freq + "m"
+    else:
+        return freq
 
 class IndexType(Enum):
     Timestamp = auto()
@@ -96,6 +101,12 @@ def make_records(
                 make_records(val, {**idx_lvls, index_name: key}, res)
         case {"data": [float() | int(), *_] as data, "type": "time_series", **_r}:
             index_name = json_doc.get("index_name", "time")  # use "time" if "index_name" does not exist
+            ignore_year = json_doc.get(index, {}).get("ignore_year", None)
+            repeat = json_doc.get(index, {}).get("repeat", None)
+            if ignore_year == False:
+                raise ValueError('Can\'t handle `ignore_year == False`. Please re-format your dataset.')
+            if repeat == False:
+                raise ValueError('Can\'t handle `repeat == False`. Please re-format your dataset.')
             match json_doc:
                 case {
                     "index": {
@@ -109,13 +120,16 @@ def make_records(
                     freq = filter_frequencies(freq)
                     index = pd.date_range(start=start, freq=freq, periods=len(data))
                 case _:
+                    if json_doc.get(index, {}) != {}:
+                        raise NotImplementedError('Can\'t handle a partially set `index` value. Please re-format your dataset.')
                     index = pd.date_range(
-                        start="2000-01-01", periods=len(data), freq="1h"
+                        start="0001-01-01", periods=len(data), freq="1h"
                     )
             for time, val in zip(index, data):
                 make_records(val, {**idx_lvls, index_name: time, "value": val}, res)
         case {
             "data": [[str(), dict() | float() | int()], *_] as data,
+            "type": "time_series",
             **_r,
         }:
             if m := SEQ_PAT.match(data[0][0]):
@@ -132,6 +146,53 @@ def make_records(
                     assert m is not None
                     key = int(m.group(2))
                 make_records(val, {**idx_lvls, index_name: key}, res)
+
+        # arrays
+        case {"type": "array", "data": [str() | float() | int(), *_] as data, **_r}:
+            value_type = json_doc.get("value_type", "float")  # use "float" if "value_type" does not exist
+            index_name = json_doc.get("index_name", "i")  # use "i" if "index_name" does not exist
+
+            if value_type == "duration":
+                try:
+                    data = [pd.Timedelta(filter_frequencies(value)) for value in data]
+                except ValueError as err:
+                    if "invalid unit abbreviation" in repr(err):
+                        raise ValueError('"year" and "month" are ambiguous time units. Please convert them to days.')
+                    else:
+                        raise err
+            elif value_type == "date_time":
+                data = [datetime.fromisoformat(key) for key in data]
+            elif value_type == "float":
+                data = [pd.to_numeric(value) for value in data]
+            elif value_type == "str":
+                pass
+            else:
+                raise NotImplementedError(f"Can't match {value_type} arrays.")
+            for value in data:
+                res.append({index_name: value})
+
+        # date-time
+        case {"type": "date_time", "data": str() as data, **_r}:
+            idx_lvls["value"] = datetime.fromisoformat(data)
+            res.append(idx_lvls)
+
+        # duration
+        case {"type": "duration", "data": int() | str() as data, **_r}:
+            if type(data) == int:
+                data = str(data) + "m"  # integer time unit is "minutes"
+            try:
+                data = pd.Timedelta(filter_frequencies(data))
+            except ValueError as err:
+                if "invalid unit abbreviation" in repr(err):
+                    raise ValueError('"year" and "month" are ambiguous time units. Please convert them to days.')
+                else:
+                    raise err
+            res.append({"value": data})
+
+        # time_pattern
+        case {"type": "time_pattern", **_r}:
+            raise NotImplementedError("Can't convert `time_pattern`. Please convert it to a `time_series`".)
+
         # values
         case int() | float() | str() | bool():
             idx_lvls["value"] = json_doc

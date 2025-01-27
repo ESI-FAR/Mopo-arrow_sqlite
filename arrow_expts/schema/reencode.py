@@ -117,11 +117,20 @@ if __name__ == "__main__":
 
     parser = ArgumentParser(__doc__)
     parser.add_argument("old_json")
-    parser.add_argument("new_json")
+    #parser.add_argument("new_json")
     opts = parser.parse_args()
+    new_json = opts.old_json.replace("/0_orig/", "/1_reencoded/")  # FIXME brittle
 
     df = to_df(json.loads(Path(opts.old_json).read_text()))
+    print("== DF ==")
+    #print(df)
     tbls = to_tables(df)
+    print("== TBLS ==")
+    print(tbls)
+    model = RootModel[Table](tbls).model_dump_json(indent=2)
+    print("== MODEL ==")
+    print(model)
     # NOTE: using pydantic is optional here, we can also write our own
     # JSON serialisation if we want, probably all we need is `asdict(...)`.
-    Path(opts.new_json).write_text(RootModel[Table](tbls).model_dump_json())
+    #Path(opts.new_json).write_text(RootModel[Table](tbls).model_dump_json())
+    Path(new_json).write_text(model)
