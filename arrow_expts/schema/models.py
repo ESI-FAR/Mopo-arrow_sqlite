@@ -61,7 +61,6 @@ Timedeltas: TypeAlias = list[timedelta]
 
 # FIXME: how to do w/o Pydantic?
 time_pat_re = r"(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+"
-time_pat_re = rf"^{time_pat_re}[,;]{time_pat_re}$|^{time_pat_re}$"
 TimePattern = Annotated[str, StringConstraints(pattern=time_pat_re)]
 TimePatterns: TypeAlias = list[TimePattern]
 
