@@ -54,18 +54,18 @@ class Floats_:
     type: Type[float]
 
 
+Floats: TypeAlias = list[float]
 Integers: TypeAlias = list[int]
 Strings: TypeAlias = list[str]
+Booleans: TypeAlias = list[bool]
+
 Datetimes: TypeAlias = list[datetime]
 Timedeltas: TypeAlias = list[timedelta]
 
 # FIXME: how to do w/o Pydantic?
 time_pat_re = r"(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+"
-TimePattern = Annotated[str, StringConstraints(pattern=time_pat_re)]
+TimePattern: TypeAlias = Annotated[str, StringConstraints(pattern=time_pat_re)]
 TimePatterns: TypeAlias = list[TimePattern]
-
-Booleans: TypeAlias = list[bool]
-Floats: TypeAlias = list[float]
 
 
 ValueType: TypeAlias = Literal[
