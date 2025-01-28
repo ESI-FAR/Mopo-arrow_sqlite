@@ -23,37 +23,6 @@ from pydantic.dataclasses import Field as field
 from pydantic.types import StringConstraints
 
 
-# more verbose alternative to the typealias below
-@dataclass(frozen=True)
-class Integers_:
-    values: list[int]
-    type: Type[int]
-
-
-@dataclass(frozen=True)
-class Strings_:
-    values: list[str]
-    type: Type[str]
-
-
-@dataclass(frozen=True)
-class Datetimes_:
-    values: list[datetime]
-    type: Type[datetime]
-
-
-@dataclass(frozen=True)
-class Booleans_:
-    values: list[bool]
-    type: Type[bool]
-
-
-@dataclass(frozen=True)
-class Floats_:
-    values: list[float]
-    type: Type[float]
-
-
 NullableFloats: TypeAlias = list[float | None]
 NullableIntegers: TypeAlias = list[int | None]
 NullableStrings: TypeAlias = list[str | None]
