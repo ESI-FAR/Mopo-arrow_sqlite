@@ -54,6 +54,11 @@ class Floats_:
     type: Type[float]
 
 
+NullableFloats: TypeAlias = list[float | None]
+NullableIntegers: TypeAlias = list[int | None]
+NullableStrings: TypeAlias = list[str | None]
+NullableBooleans: TypeAlias = list[bool | None]
+
 Floats: TypeAlias = list[float]
 Integers: TypeAlias = list[int]
 Strings: TypeAlias = list[str]
@@ -149,7 +154,10 @@ class ArrayIndex(_TypeInferMixin):
 
 @dataclass(frozen=True)
 class REArray(_TypeInferMixin):
-    """Run end encoded array"""
+    """Run end encoded array
+
+    Note: Run end encoded arrays do not support null/missing values
+    """
 
     name: str
     run_end: list[int]
@@ -163,7 +171,7 @@ class DEArray(_TypeInferMixin):
     """Dictionary encoded array"""
 
     name: str
-    indices: list[int]
+    indices: list[int | None]
     values: Strings | Floats | Booleans
     value_type: Literal["string", "number", "boolean"] = field(init=False)
     type: Literal["de_array"] = "de_array"
@@ -174,7 +182,7 @@ class Array(_TypeInferMixin):
     """Array"""
 
     name: str
-    values: Integers | Strings | Floats | Booleans
+    values: NullableIntegers | NullableStrings | NullableFloats | NullableBooleans
     value_type: Literal["integer", "string", "number", "boolean"] = field(init=False)
     type: Literal["array"] = "array"
 
