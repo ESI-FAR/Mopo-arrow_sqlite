@@ -11,25 +11,53 @@
           "anyOf": [
             {
               "items": {
-                "type": "integer"
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               },
               "type": "array"
             },
             {
               "items": {
-                "type": "string"
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               },
               "type": "array"
             },
             {
               "items": {
-                "type": "number"
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               },
               "type": "array"
             },
             {
               "items": {
-                "type": "boolean"
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               },
               "type": "array"
             }
@@ -98,7 +126,7 @@
             },
             {
               "items": {
-                "pattern": "^(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+[,;](Y|M|D|WD|h|m|s)[0-9]+-[0-9]+$|^(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+$",
+                "pattern": "(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+",
                 "type": "string"
               },
               "type": "array"
@@ -141,7 +169,14 @@
         },
         "indices": {
           "items": {
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "title": "Indices",
           "type": "array"
@@ -232,7 +267,7 @@
             },
             {
               "items": {
-                "pattern": "^(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+[,;](Y|M|D|WD|h|m|s)[0-9]+-[0-9]+$|^(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+$",
+                "pattern": "(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+",
                 "type": "string"
               },
               "type": "array"
@@ -267,7 +302,7 @@
       "type": "object"
     },
     "REArray": {
-      "description": "Run end encoded array",
+      "description": "Run end encoded array\n\nNote: Run end encoded arrays do not support null/missing values",
       "properties": {
         "name": {
           "title": "Name",
@@ -366,7 +401,7 @@
             },
             {
               "items": {
-                "pattern": "^(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+[,;](Y|M|D|WD|h|m|s)[0-9]+-[0-9]+$|^(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+$",
+                "pattern": "(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+",
                 "type": "string"
               },
               "type": "array"
