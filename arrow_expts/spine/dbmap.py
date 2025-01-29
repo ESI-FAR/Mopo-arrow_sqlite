@@ -7,6 +7,7 @@ from typing import cast
 import weakref
 
 import pandas as pd
+import numpy as np
 
 from spinedb_api import DatabaseMapping
 from spinedb_api.temp_id import TempId
@@ -25,30 +26,63 @@ def filter_frequencies(freq: str) -> str:
         .replace("year", "Y") \
         .replace("months", "M") \
         .replace("month", "M") \
-        .replace("quarters", "Q") \
-        .replace("quarter", "Q") \
         .replace("weeks", "W") \
         .replace("week", "W") \
+        .replace("days", "D") \
+        .replace("day", "D") \
         .replace("hours", "h") \
         .replace("hour", "h") \
         .replace("minutes", "min") \
         .replace("minute", "min") \
         .replace("seconds", "s") \
-        .replace("second", "s") \
-        .replace("microseconds", "us") \
-        .replace("microsecond", "us") \
-        .replace("nanoseconds", "ns") \
-        .replace("nanosecond", "ns")
+        .replace("second", "s")
     if re.compile("^[0-9]+$").match(filtered_freq):
         # If frequency is an integer, the implied unit is "minutes"
-        return freq + "m"
+        return filtered_freq + "m"
     else:
-        return freq
+        return filtered_freq
 
 class IndexType(Enum):
     Timestamp = auto()
     Sequence = auto()
     Generic = auto()
+
+to_numpy = {
+    "Y": "Y",
+    "M": "M",
+    "W": "W",
+    "D": "D",
+    "h": "h",
+    "min": "m",
+    "s": "s",
+}
+
+def low_res_datetime(start: str, freq: str, periods: int) -> pd.DatetimeIndex:
+    """Create pd.DatetimeIndex with lower time resolution.
+
+    The default resolution of pd.date_time is [ns], which puts boundaries on allowed start- and end-dates due to limited storage capacity. Choosing a resolution of [s] instead opens up that range considerably.
+
+    "For nanosecond resolution, the time span that can be represented using a 64-bit integer is limited to approximately 584 years."
+    - https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#timestamp-limitations
+
+    You can check the available ranges with `pd.Timestamp.min` and `pd.Timestamp.max`.
+    """
+    period_parts = re.search(r'^([0-9]+) *(.*)$', freq).groups()
+    if len(period_parts) != 2:
+        raise ValueError("Can't analyze period \"{period}\".")
+    number_str, unit = period_parts
+    start_date_np = np.datetime64(start, "s")
+    #print(f"start_date_np: {start_date_np}")
+    #print(to_numpy[unit])
+    freq_np = np.timedelta64(int(number_str), to_numpy[unit])
+    #print(f"freq_np: {freq_np}")
+    freq_pd = pd.Timedelta(freq_np)
+    #print(f"freq_pd: {freq_pd}")
+
+    date_array = np.arange(start_date_np, start_date_np + periods * freq_pd, freq_pd)
+    date_array_with_frequency = pd.DatetimeIndex(date_array, freq=freq_pd, dtype="datetime64[s]")
+
+    return date_array_with_frequency
 
 
 def make_records(
@@ -101,12 +135,12 @@ def make_records(
                 make_records(val, {**idx_lvls, index_name: key}, res)
         case {"data": [float() | int(), *_] as data, "type": "time_series", **_r}:
             index_name = json_doc.get("index_name", "time")  # use "time" if "index_name" does not exist
-            ignore_year = json_doc.get(index, {}).get("ignore_year", None)
-            repeat = json_doc.get(index, {}).get("repeat", None)
-            if ignore_year == False:
-                raise ValueError('Can\'t handle `ignore_year == False`. Please re-format your dataset.')
-            if repeat == False:
-                raise ValueError('Can\'t handle `repeat == False`. Please re-format your dataset.')
+            ignore_year = json_doc.get("index", {}).get("ignore_year", None)
+            repeat = json_doc.get("index", {}).get("repeat", None)
+            if ignore_year == True:
+                raise ValueError('Can\'t handle `ignore_year == True`. Please re-format your dataset.')
+            if repeat == True:
+                raise ValueError('Can\'t handle `repeat == True`. Please re-format your dataset.')
             match json_doc:
                 case {
                     "index": {
@@ -118,12 +152,12 @@ def make_records(
                     **_r,
                 }:
                     freq = filter_frequencies(freq)
-                    index = pd.date_range(start=start, freq=freq, periods=len(data))
+                    index = low_res_datetime(start=start, freq=freq, periods=len(data))
                 case _:
-                    if json_doc.get(index, {}) != {}:
+                    if json_doc.get("index", {}) != {}:
                         raise NotImplementedError('Can\'t handle a partially set `index` value. Please re-format your dataset.')
-                    index = pd.date_range(
-                        start="0001-01-01", periods=len(data), freq="1h"
+                    index = low_res_datetime(
+                        start="0001-02-02", freq="1h", periods=len(data)
                     )
             for time, val in zip(index, data):
                 make_records(val, {**idx_lvls, index_name: time, "value": val}, res)
