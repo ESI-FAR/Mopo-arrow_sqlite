@@ -191,7 +191,7 @@ def make_records(
 
         # time_pattern
         case {"type": "time_pattern", **_r}:
-            raise NotImplementedError("Can't convert `time_pattern`. Please convert it to a `time_series`".)
+            raise NotImplementedError("Can't convert `time_pattern`. Please convert it to a `time_series`.")
 
         # values
         case int() | float() | str() | bool():
