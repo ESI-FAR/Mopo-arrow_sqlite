@@ -115,22 +115,15 @@ def to_tables(df: pd.DataFrame) -> Table:
 if __name__ == "__main__":
     from argparse import ArgumentParser
 
-    parser = ArgumentParser(__doc__)
-    parser.add_argument("old_json")
-    #parser.add_argument("new_json")
-    opts = parser.parse_args()
-    new_json = opts.old_json.replace("/0_orig/", "/1_reencoded/")  # FIXME brittle
+    input_lines = []
+    try:
+        while True:
+            input_lines.append(input())
+    except EOFError:
+        pass
+    input_string = "\n".join(input_lines)
 
-    df = to_df(json.loads(Path(opts.old_json).read_text()))
-    print("== DF ==")
-    #print(df)
+    df = to_df(json.loads(input_string))
     tbls = to_tables(df)
-    print("== TBLS ==")
-    print(tbls)
-    model = RootModel[Table](tbls).model_dump_json(indent=2)
-    print("== MODEL ==")
-    print(model)
-    # NOTE: using pydantic is optional here, we can also write our own
-    # JSON serialisation if we want, probably all we need is `asdict(...)`.
-    #Path(opts.new_json).write_text(RootModel[Table](tbls).model_dump_json())
-    Path(new_json).write_text(model)
+    validated_data = RootModel[Table](tbls).model_dump_json()
+    print(validated_data)
