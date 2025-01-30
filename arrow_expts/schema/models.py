@@ -87,7 +87,7 @@ class _TypeInferMixin:
 
 
 @dataclass(frozen=True)
-class RLIndex(_TypeInferMixin):
+class RunLengthIndex(_TypeInferMixin):
     """Run length encoded array
 
     NOTE: this is not supported by PyArrow, if we use it, we will have
@@ -99,29 +99,29 @@ class RLIndex(_TypeInferMixin):
     run_len: Integers
     values: IndexTypes
     value_type: IndexValueTypeNames = field(init=False)
-    type: Literal["rl_index"] = "rl_index"
+    type: Literal["run_length_index"] = "run_length_index"
 
 
 @dataclass(frozen=True)
-class REIndex(_TypeInferMixin):
+class RunEndIndex(_TypeInferMixin):
     """Run end encoded array"""
 
     name: str
     run_end: Integers
     values: IndexTypes
     value_type: IndexValueTypeNames = field(init=False)
-    type: Literal["re_index"] = "re_index"
+    type: Literal["run_end_index"] = "run_end_index"
 
 
 @dataclass(frozen=True)
-class DEIndex(_TypeInferMixin):
+class DictEncodedIndex(_TypeInferMixin):
     """Dictionary encoded array"""
 
     name: str
     indices: Integers
     values: IndexTypes
     value_type: IndexValueTypeNames = field(init=False)
-    type: Literal["de_index"] = "de_index"
+    type: Literal["dict_encoded_index"] = "dict_encoded_index"
 
 
 @dataclass(frozen=True)
@@ -135,7 +135,7 @@ class ArrayIndex(_TypeInferMixin):
 
 
 @dataclass(frozen=True)
-class RLArray(_TypeInferMixin):
+class RunLengthArray(_TypeInferMixin):
     """Run length encoded array
 
     NOTE: this is not supported by PyArrow, if we use it, we will have
@@ -147,29 +147,29 @@ class RLArray(_TypeInferMixin):
     run_len: Integers
     values: NullableValueTypes
     value_type: ValueTypeNames = field(init=False)
-    type: Literal["rl_array"] = "rl_array"
+    type: Literal["run_length_array"] = "run_length_array"
 
 
 @dataclass(frozen=True)
-class REArray(_TypeInferMixin):
+class RunEndArray(_TypeInferMixin):
     """Run end encoded array"""
 
     name: str
     run_end: Integers
     values: NullableValueTypes
     value_type: ValueTypeNames = field(init=False)
-    type: Literal["re_array"] = "re_array"
+    type: Literal["run_end_array"] = "run_end_array"
 
 
 @dataclass(frozen=True)
-class DEArray(_TypeInferMixin):
+class DictEncodedArray(_TypeInferMixin):
     """Dictionary encoded array"""
 
     name: str
     indices: NullableIntegers
     values: NullableValueTypes
     value_type: ValueTypeNames = field(init=False)
-    type: Literal["de_array"] = "de_array"
+    type: Literal["dict_encoded_array"] = "dict_encoded_array"
 
 
 @dataclass(frozen=True)
@@ -185,7 +185,9 @@ class Array(_TypeInferMixin):
 # NOTE: To add run-length encoding to the schema, add it to the
 # following type union following which, we need to implement a
 # converter to an Arrow array type
-Table: TypeAlias = list[REIndex | DEIndex | ArrayIndex | REArray | DEArray | Array]
+Table: TypeAlias = list[
+    RunEndIndex | DictEncodedIndex | ArrayIndex | RunEndArray | DictEncodedArray | Array
+]
 
 
 if __name__ == "__main__":
