@@ -123,14 +123,11 @@ class ArrayIndex(_TypeInferMixin):
 
 @dataclass(frozen=True)
 class REArray(_TypeInferMixin):
-    """Run end encoded array
-
-    Note: Run end encoded arrays do not support null/missing values
-    """
+    """Run end encoded array"""
 
     name: str
-    run_end: list[int]
-    values: Strings | Floats | Booleans
+    run_end: Integers
+    values: NullableStrings | NullableFloats | NullableBooleans
     value_type: Literal["string", "number", "boolean"] = field(init=False)
     type: Literal["re_array"] = "re_array"
 
@@ -140,8 +137,8 @@ class DEArray(_TypeInferMixin):
     """Dictionary encoded array"""
 
     name: str
-    indices: list[int | None]
-    values: Strings | Floats | Booleans
+    indices: NullableIntegers
+    values: NullableStrings | NullableFloats | NullableBooleans
     value_type: Literal["string", "number", "boolean"] = field(init=False)
     type: Literal["de_array"] = "de_array"
 
