@@ -23,11 +23,6 @@ from pydantic.dataclasses import Field as field
 from pydantic.types import StringConstraints
 
 
-NullableFloats: TypeAlias = list[float | None]
-NullableIntegers: TypeAlias = list[int | None]
-NullableStrings: TypeAlias = list[str | None]
-NullableBooleans: TypeAlias = list[bool | None]
-
 Floats: TypeAlias = list[float]
 Integers: TypeAlias = list[int]
 Strings: TypeAlias = list[str]
@@ -41,11 +36,37 @@ time_pat_re = r"(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+"
 TimePattern: TypeAlias = Annotated[str, StringConstraints(pattern=time_pat_re)]
 TimePatterns: TypeAlias = list[TimePattern]
 
+NullableIntegers: TypeAlias = list[int | None]
+NullableFloats: TypeAlias = list[float | None]
+NullableStrings: TypeAlias = list[str | None]
+NullableBooleans: TypeAlias = list[bool | None]
+NullableDatetimes: TypeAlias = list[datetime | None]
+NullableTimedeltas: TypeAlias = list[timedelta | None]
+NullableTimePatterns: TypeAlias = list[TimePattern | None]
 
-ValueType: TypeAlias = Literal[
+IndexTypes: TypeAlias = Integers | Strings | Datetimes | Timedeltas | TimePatterns
+ValueTypes: TypeAlias = (
+    Integers | Strings | Floats | Booleans | Datetimes | Timedeltas | TimePatterns
+)
+NullableValueTypes: TypeAlias = (
+    NullableIntegers
+    | NullableStrings
+    | NullableFloats
+    | NullableBooleans
+    | NullableDatetimes
+    | NullableTimedeltas
+    | NullableTimePatterns
+)
+
+
+ValueTypeNames: TypeAlias = Literal[
     "string", "integer", "number", "boolean", "date-time", "duration", "time-pattern"
 ]
-type_map: dict[type, ValueType] = {
+IndexValueTypeNames: TypeAlias = Literal[
+    "string", "integer", "date-time", "duration", "time-pattern"
+]
+
+type_map: dict[type, ValueTypeNames] = {
     str: "string",
     int: "integer",
     float: "number",
@@ -76,10 +97,8 @@ class RLIndex(_TypeInferMixin):
 
     name: str
     run_len: Integers
-    values: Strings | Datetimes | Timedeltas | TimePatterns
-    value_type: Literal["string", "date-time", "duration", "time-pattern"] = field(
-        init=False
-    )
+    values: IndexTypes
+    value_type: IndexValueTypeNames = field(init=False)
     type: Literal["rl_index"] = "rl_index"
 
 
@@ -88,11 +107,9 @@ class REIndex(_TypeInferMixin):
     """Run end encoded array"""
 
     name: str
-    run_end: list[int]
-    values: Strings | Datetimes | Timedeltas | TimePatterns
-    value_type: Literal["string", "date-time", "duration", "time-pattern"] = field(
-        init=False
-    )
+    run_end: Integers
+    values: IndexTypes
+    value_type: IndexValueTypeNames = field(init=False)
     type: Literal["re_index"] = "re_index"
 
 
@@ -101,11 +118,9 @@ class DEIndex(_TypeInferMixin):
     """Dictionary encoded array"""
 
     name: str
-    indices: list[int]
-    values: Strings | Datetimes | Timedeltas | TimePatterns
-    value_type: Literal["string", "date-time", "duration", "time-pattern"] = field(
-        init=False
-    )
+    indices: Integers
+    values: IndexTypes
+    value_type: IndexValueTypeNames = field(init=False)
     type: Literal["de_index"] = "de_index"
 
 
@@ -114,11 +129,25 @@ class ArrayIndex(_TypeInferMixin):
     """Any array that is an index, e.g. a sequence, timestamps, labels"""
 
     name: str
-    values: Integers | Strings | Datetimes | Timedeltas | TimePatterns
-    value_type: Literal[
-        "integer", "string", "date-time", "duration", "time-pattern"
-    ] = field(init=False)
+    values: IndexTypes
+    value_type: IndexValueTypeNames = field(init=False)
     type: Literal["array_index"] = "array_index"
+
+
+@dataclass(frozen=True)
+class RLArray(_TypeInferMixin):
+    """Run length encoded array
+
+    NOTE: this is not supported by PyArrow, if we use it, we will have
+    to convert to a supported format.
+
+    """
+
+    name: str
+    run_len: Integers
+    values: NullableValueTypes
+    value_type: ValueTypeNames = field(init=False)
+    type: Literal["rl_array"] = "rl_array"
 
 
 @dataclass(frozen=True)
@@ -127,8 +156,8 @@ class REArray(_TypeInferMixin):
 
     name: str
     run_end: Integers
-    values: NullableStrings | NullableFloats | NullableBooleans
-    value_type: Literal["string", "number", "boolean"] = field(init=False)
+    values: NullableValueTypes
+    value_type: ValueTypeNames = field(init=False)
     type: Literal["re_array"] = "re_array"
 
 
@@ -138,8 +167,8 @@ class DEArray(_TypeInferMixin):
 
     name: str
     indices: NullableIntegers
-    values: NullableStrings | NullableFloats | NullableBooleans
-    value_type: Literal["string", "number", "boolean"] = field(init=False)
+    values: NullableValueTypes
+    value_type: ValueTypeNames = field(init=False)
     type: Literal["de_array"] = "de_array"
 
 
@@ -148,11 +177,14 @@ class Array(_TypeInferMixin):
     """Array"""
 
     name: str
-    values: NullableIntegers | NullableStrings | NullableFloats | NullableBooleans
-    value_type: Literal["integer", "string", "number", "boolean"] = field(init=False)
+    values: NullableValueTypes
+    value_type: ValueTypeNames = field(init=False)
     type: Literal["array"] = "array"
 
 
+# NOTE: To add run-length encoding to the schema, add it to the
+# following type union following which, we need to implement a
+# converter to an Arrow array type
 Table: TypeAlias = list[REIndex | DEIndex | ArrayIndex | REArray | DEArray | Array]
 
 
