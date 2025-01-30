@@ -60,16 +60,61 @@
                 ]
               },
               "type": "array"
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "format": "duration",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "pattern": "(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
             }
           ],
           "title": "Values"
         },
         "value_type": {
           "enum": [
-            "integer",
             "string",
+            "integer",
             "number",
-            "boolean"
+            "boolean",
+            "date-time",
+            "duration",
+            "time-pattern"
           ],
           "title": "Value Type",
           "type": "string"
@@ -136,8 +181,8 @@
         },
         "value_type": {
           "enum": [
-            "integer",
             "string",
+            "integer",
             "date-time",
             "duration",
             "time-pattern"
@@ -160,7 +205,7 @@
       "title": "ArrayIndex",
       "type": "object"
     },
-    "DEArray": {
+    "DictEncodedArray": {
       "description": "Dictionary encoded array",
       "properties": {
         "name": {
@@ -185,19 +230,95 @@
           "anyOf": [
             {
               "items": {
-                "type": "string"
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               },
               "type": "array"
             },
             {
               "items": {
-                "type": "number"
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               },
               "type": "array"
             },
             {
               "items": {
-                "type": "boolean"
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "format": "duration",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "pattern": "(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               },
               "type": "array"
             }
@@ -207,15 +328,19 @@
         "value_type": {
           "enum": [
             "string",
+            "integer",
             "number",
-            "boolean"
+            "boolean",
+            "date-time",
+            "duration",
+            "time-pattern"
           ],
           "title": "Value Type",
           "type": "string"
         },
         "type": {
-          "const": "de_array",
-          "default": "de_array",
+          "const": "dict_encoded_array",
+          "default": "dict_encoded_array",
           "title": "Type",
           "type": "string"
         }
@@ -226,10 +351,10 @@
         "values",
         "value_type"
       ],
-      "title": "DEArray",
+      "title": "DictEncodedArray",
       "type": "object"
     },
-    "DEIndex": {
+    "DictEncodedIndex": {
       "description": "Dictionary encoded array",
       "properties": {
         "name": {
@@ -247,6 +372,12 @@
           "anyOf": [
             {
               "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
                 "type": "string"
               },
               "type": "array"
@@ -278,6 +409,7 @@
         "value_type": {
           "enum": [
             "string",
+            "integer",
             "date-time",
             "duration",
             "time-pattern"
@@ -286,8 +418,8 @@
           "type": "string"
         },
         "type": {
-          "const": "de_index",
-          "default": "de_index",
+          "const": "dict_encoded_index",
+          "default": "dict_encoded_index",
           "title": "Type",
           "type": "string"
         }
@@ -298,72 +430,10 @@
         "values",
         "value_type"
       ],
-      "title": "DEIndex",
+      "title": "DictEncodedIndex",
       "type": "object"
     },
-    "REArray": {
-      "description": "Run end encoded array\n\nNote: Run end encoded arrays do not support null/missing values",
-      "properties": {
-        "name": {
-          "title": "Name",
-          "type": "string"
-        },
-        "run_end": {
-          "items": {
-            "type": "integer"
-          },
-          "title": "Run End",
-          "type": "array"
-        },
-        "values": {
-          "anyOf": [
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            {
-              "items": {
-                "type": "number"
-              },
-              "type": "array"
-            },
-            {
-              "items": {
-                "type": "boolean"
-              },
-              "type": "array"
-            }
-          ],
-          "title": "Values"
-        },
-        "value_type": {
-          "enum": [
-            "string",
-            "number",
-            "boolean"
-          ],
-          "title": "Value Type",
-          "type": "string"
-        },
-        "type": {
-          "const": "re_array",
-          "default": "re_array",
-          "title": "Type",
-          "type": "string"
-        }
-      },
-      "required": [
-        "name",
-        "run_end",
-        "values",
-        "value_type"
-      ],
-      "title": "REArray",
-      "type": "object"
-    },
-    "REIndex": {
+    "RunEndArray": {
       "description": "Run end encoded array",
       "properties": {
         "name": {
@@ -381,6 +451,154 @@
           "anyOf": [
             {
               "items": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "format": "duration",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "pattern": "(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            }
+          ],
+          "title": "Values"
+        },
+        "value_type": {
+          "enum": [
+            "string",
+            "integer",
+            "number",
+            "boolean",
+            "date-time",
+            "duration",
+            "time-pattern"
+          ],
+          "title": "Value Type",
+          "type": "string"
+        },
+        "type": {
+          "const": "run_end_array",
+          "default": "run_end_array",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "run_end",
+        "values",
+        "value_type"
+      ],
+      "title": "RunEndArray",
+      "type": "object"
+    },
+    "RunEndIndex": {
+      "description": "Run end encoded array",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "run_end": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Run End",
+          "type": "array"
+        },
+        "values": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
                 "type": "string"
               },
               "type": "array"
@@ -412,6 +630,7 @@
         "value_type": {
           "enum": [
             "string",
+            "integer",
             "date-time",
             "duration",
             "time-pattern"
@@ -420,8 +639,8 @@
           "type": "string"
         },
         "type": {
-          "const": "re_index",
-          "default": "re_index",
+          "const": "run_end_index",
+          "default": "run_end_index",
           "title": "Type",
           "type": "string"
         }
@@ -432,32 +651,32 @@
         "values",
         "value_type"
       ],
-      "title": "REIndex",
+      "title": "RunEndIndex",
       "type": "object"
     }
   },
   "items": {
     "anyOf": [
       {
-        "$ref": "#/$defs/REIndex"
+        "$ref": "#/$defs/RunEndIndex"
       },
       {
-        "$ref": "#/$defs/DEIndex"
+        "$ref": "#/$defs/DictEncodedIndex"
       },
       {
         "$ref": "#/$defs/ArrayIndex"
       },
       {
-        "$ref": "#/$defs/REArray"
+        "$ref": "#/$defs/RunEndArray"
       },
       {
-        "$ref": "#/$defs/DEArray"
+        "$ref": "#/$defs/DictEncodedArray"
       },
       {
         "$ref": "#/$defs/Array"
       }
     ]
   },
-  "title": "RootModel[list[Union[REIndex, DEIndex, ArrayIndex, REArray, DEArray, Array]]]",
+  "title": "RootModel[list[Union[RunEndIndex, DictEncodedIndex, ArrayIndex, RunEndArray, DictEncodedArray, Array]]]",
   "type": "array"
 }
