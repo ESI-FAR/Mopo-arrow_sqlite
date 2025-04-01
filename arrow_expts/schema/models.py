@@ -14,7 +14,7 @@
 # from dataclasses import dataclass
 # from dataclasses import field
 from datetime import datetime, timedelta
-from typing import Annotated, Literal, Type, TypeAlias
+from typing import Annotated, Literal, TypeAlias
 
 import pandas as pd
 from pydantic import RootModel
@@ -27,6 +27,7 @@ Floats: TypeAlias = list[float]
 Integers: TypeAlias = list[int]
 Strings: TypeAlias = list[str]
 Booleans: TypeAlias = list[bool]
+BytesList: TypeAlias = list[bytes]
 
 Datetimes: TypeAlias = list[datetime]
 Timedeltas: TypeAlias = list[timedelta]
@@ -46,7 +47,14 @@ NullableTimePatterns: TypeAlias = list[TimePattern | None]
 
 IndexTypes: TypeAlias = Integers | Strings | Datetimes | Timedeltas | TimePatterns
 ValueTypes: TypeAlias = (
-    Integers | Strings | Floats | Booleans | Datetimes | Timedeltas | TimePatterns
+    Integers
+    | Strings
+    | Floats
+    | Booleans
+    | Datetimes
+    | Timedeltas
+    | TimePatterns
+    | BytesList
 )
 NullableValueTypes: TypeAlias = (
     NullableIntegers
@@ -76,6 +84,7 @@ type_map: dict[type, ValueTypeNames] = {
     timedelta: "duration",
     pd.Timedelta: "duration",
     TimePattern: "time-pattern",
+    bytes: "string",
 }
 
 
@@ -182,11 +191,27 @@ class Array(_TypeInferMixin):
     type: Literal["array"] = "array"
 
 
+@dataclass(frozen=True)
+class BytesArray(_TypeInferMixin):
+    """Array of bytes to store mixed types"""
+
+    name: str
+    values: BytesList
+    value_type: ValueTypeNames = field(init=False)
+    type: Literal["bytes_array"] = "bytes_array"
+
+
 # NOTE: To add run-length encoding to the schema, add it to the
 # following type union following which, we need to implement a
 # converter to an Arrow array type
 Table: TypeAlias = list[
-    RunEndIndex | DictEncodedIndex | ArrayIndex | RunEndArray | DictEncodedArray | Array
+    RunEndIndex
+    | DictEncodedIndex
+    | ArrayIndex
+    | RunEndArray
+    | DictEncodedArray
+    | Array
+    | BytesArray
 ]
 
 
