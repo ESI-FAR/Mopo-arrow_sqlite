@@ -1,9 +1,9 @@
 from argparse import ArgumentParser
 from datetime import datetime
-from enum import Enum, auto
 import json
 import re
-from typing import cast
+from typing import cast, Any, Callable, Iterable, TypeAlias
+from warnings import warn
 import weakref
 
 import pandas as pd
@@ -18,34 +18,33 @@ def json_loads_ts(json_str: str | bytes):
 
 
 SEQ_PAT = re.compile(r"(t|p)([0-9]+)")
+FREQ_PAT = re.compile("^[0-9]+$")
 
-def filter_frequencies(freq: str) -> str:
-    # not very robust yet
-    filtered_freq  = freq \
-        .replace("years", "Y") \
-        .replace("year", "Y") \
-        .replace("months", "M") \
-        .replace("month", "M") \
-        .replace("weeks", "W") \
-        .replace("week", "W") \
-        .replace("days", "D") \
-        .replace("day", "D") \
-        .replace("hours", "h") \
-        .replace("hour", "h") \
-        .replace("minutes", "min") \
-        .replace("minute", "min") \
-        .replace("seconds", "s") \
-        .replace("second", "s")
-    if re.compile("^[0-9]+$").match(filtered_freq):
+
+def normalise_freq(freq: int | str):
+    if isinstance(freq, int):
+        return str(freq) + "m"
+    if FREQ_PAT.match(freq):
         # If frequency is an integer, the implied unit is "minutes"
-        return filtered_freq + "m"
-    else:
-        return filtered_freq
+        return freq + "m"
+    # not very robust yet
+    return (
+        freq.replace("years", "Y")
+        .replace("year", "Y")
+        .replace("months", "M")
+        .replace("month", "M")
+        .replace("weeks", "W")
+        .replace("week", "W")
+        .replace("days", "D")
+        .replace("day", "D")
+        .replace("hours", "h")
+        .replace("hour", "h")
+        .replace("minutes", "min")
+        .replace("minute", "min")
+        .replace("seconds", "s")
+        .replace("second", "s")
+    )
 
-class IndexType(Enum):
-    Timestamp = auto()
-    Sequence = auto()
-    Generic = auto()
 
 to_numpy = {
     "Y": "Y",
@@ -57,32 +56,76 @@ to_numpy = {
     "s": "s",
 }
 
+
 def low_res_datetime(start: str, freq: str, periods: int) -> pd.DatetimeIndex:
     """Create pd.DatetimeIndex with lower time resolution.
 
-    The default resolution of pd.date_time is [ns], which puts boundaries on allowed start- and end-dates due to limited storage capacity. Choosing a resolution of [s] instead opens up that range considerably.
+    The default resolution of pd.date_time is [ns], which puts
+    boundaries on allowed start- and end-dates due to limited storage
+    capacity. Choosing a resolution of [s] instead opens up that range
+    considerably.
 
-    "For nanosecond resolution, the time span that can be represented using a 64-bit integer is limited to approximately 584 years."
-    - https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#timestamp-limitations
+    "For nanosecond resolution, the time span that can be represented
+    using a 64-bit integer is limited to approximately 584 years."  -
+    https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#timestamp-limitations
 
-    You can check the available ranges with `pd.Timestamp.min` and `pd.Timestamp.max`.
+    You can check the available ranges with `pd.Timestamp.min` and
+    `pd.Timestamp.max`.
+
     """
-    period_parts = re.search(r'^([0-9]+) *(.*)$', freq).groups()
+    if re_match := re.search(r"^([0-9]+) *(.*)$", freq):
+        period_parts = re_match.groups()
+    else:
+        raise ValueError(f"invalid frequency: {freq!r}")
+
     if len(period_parts) != 2:
-        raise ValueError("Can't analyze period \"{period}\".")
+        raise ValueError(f"invalid frequency: {freq!r}")
+
     number_str, unit = period_parts
     start_date_np = np.datetime64(start, "s")
-    #print(f"start_date_np: {start_date_np}")
-    #print(to_numpy[unit])
+    # print(f"start_date_np: {start_date_np}")
+    # print(to_numpy[unit])
     freq_np = np.timedelta64(int(number_str), to_numpy[unit])
-    #print(f"freq_np: {freq_np}")
+    # print(f"freq_np: {freq_np}")
     freq_pd = pd.Timedelta(freq_np)
-    #print(f"freq_pd: {freq_pd}")
+    # print(f"freq_pd: {freq_pd}")
 
-    date_array = np.arange(start_date_np, start_date_np + periods * freq_pd, freq_pd)
-    date_array_with_frequency = pd.DatetimeIndex(date_array, freq=freq_pd, dtype="datetime64[s]")
+    date_array = np.arange(start_date_np, start_date_np + periods * freq_np, freq_np)
+    date_array_with_frequency = pd.DatetimeIndex(
+        date_array, freq=freq_pd, dtype="datetime64[s]"
+    )
 
     return date_array_with_frequency
+
+
+def _atoi(name: str, val: str) -> dict[str, int | str]:
+    """Convert string to number if it matches `t0001` or `p2001`."""
+    if m := SEQ_PAT.match(val):
+        name = "period" if "p" == m.group(1) else "time"
+        return {name: int(m.group(2))}
+    else:
+        return {name: val}
+
+
+_FmtIdx: TypeAlias = (
+    Callable[[str, str], dict[str, Any]] | Callable[[str, dict], dict[str, Any]]
+)
+
+
+def _formatter(index_type: str | dict) -> _FmtIdx:
+    match index_type:
+        case "date_time" | "datetime":
+            return lambda name, key: {name: datetime.fromisoformat(key)}
+        case "duration":
+            return lambda name, key: {name: normalise_freq(key)}
+        case "str":
+            # custom handling when data matches `SEQ_PAT`
+            return _atoi
+        case "float" | "time_pattern" | "timepattern" | "noop":
+            return lambda name, key: {name: key}
+        case _:  # fallback to noop w/ a warning
+            warn(f"{index_type}: unknown type, fallback to noop formatter")
+            return lambda name, key: {name: key}
 
 
 def make_records(
@@ -98,141 +141,85 @@ def make_records(
 
     """
 
+    def _from_pairs(data: Iterable[Iterable], fmt: _FmtIdx):
+        assert isinstance(json_doc, dict)
+        index_name = json_doc.get("index_name", idx_name)
+        for key, val in data:
+            make_records(val, {**idx_lvls, **fmt(index_name, key)}, res)
+
+    def _deprecated(var: str, val: Any):
+        assert isinstance(json_doc, dict)
+        index_name = json_doc.get("index_name")
+        msg = f"{index_name}: {var}={val} is deprecated, handle in model, defaulting to time index from 0001-01-01."
+        warn(msg, DeprecationWarning)
+
+    def _time_index(idx: dict, length: int):
+        start = idx.get("start", "0001-01-01T00:00:00")
+        resolution = idx.get("resolution", "1h")
+        freq = normalise_freq(resolution)
+        return low_res_datetime(start=start, freq=freq, periods=length)
+
+    def _append_arr(arr: Iterable, fmt: _FmtIdx):
+        assert isinstance(json_doc, dict)
+        index_name = json_doc.get("index_name", "i")
+        for value in arr:
+            res.append({**idx_lvls, **fmt(index_name, value)})
+
+    def _append_val(value, fmt: _FmtIdx):
+        res.append({**idx_lvls, **fmt("value", value)})
+
     match json_doc:
         # maps
-        case {"data": list() as data, "type": "map", **_r}:
-            index_name = json_doc.get("index_name", "time")  # use "time" if "index_name" does not exist
-            index_type = json_doc.get("index_type")
-            for key, val in data:
-                if index_type == "date_time":
-                    key = datetime.fromisoformat(key)
-                if index_type == "duration":
-                    key = pd.Timedelta(key)
-                make_records(val, {**idx_lvls, index_name: key}, res)
-        case {"data": dict() as data, "type": "map", **_r}:
-            index_name = json_doc.get("index_name", "time")  # use "time" if "index_name" does not exist
-            index_type = json_doc.get("index_type")
-            for key, val in data.items():
-                if index_type == "date_time":
-                    key = datetime.fromisoformat(key)
-                if index_type == "duration":
-                    key = pd.Timedelta(key)
-                make_records(val, {**idx_lvls, index_name: key}, res)
+        case {"data": dict() as data, "type": "map", "index_type": index_type}:
+            _from_pairs(data.items(), _formatter(index_type))
+        case {"data": dict() as data, "index_type": index_type}:
+            _from_pairs(data.items(), _formatter(index_type))
+        case {"data": [[_, _], *_] as data, "type": "map", "index_type": index_type}:
+            _from_pairs(data, _formatter(index_type))
+        case {"data": [[_, _], *_] as data, "index_type": index_type}:
+            _from_pairs(data, _formatter(index_type))
         # time series
-        case {"data": dict() as data, "type": "time_series", **_r}:
-            index_name = json_doc.get("index_name", "time")  # use "time" if "index_name" does not exist
-            for key, val in data.items():
-                key = datetime.fromisoformat(key)
-                make_records(val, {**idx_lvls, index_name: key}, res)
+        case {"data": dict() as data, "type": "time_series"}:
+            _from_pairs(data.items(), _formatter("date_time"))
+        case {"data": [[str(), float() | int()], *_] as data, "type": "time_series"}:
+            _from_pairs(data, _formatter("date_time"))
         case {
-            "data": [[str(), float() | int()], *_] as data,
+            "data": [float() | int(), *_] as data,
             "type": "time_series",
-            **_r,
+            "index": dict() as idx,
         }:
-            index_name = json_doc.get("index_name", "time")  # use "time" if "index_name" does not exist
-            for key, val in data:
-                key = datetime.fromisoformat(key)
-                make_records(val, {**idx_lvls, index_name: key}, res)
-        case {"data": [float() | int(), *_] as data, "type": "time_series", **_r}:
-            index_name = json_doc.get("index_name", "time")  # use "time" if "index_name" does not exist
-            ignore_year = json_doc.get("index", {}).get("ignore_year", None)
-            repeat = json_doc.get("index", {}).get("repeat", None)
-            if ignore_year == True:
-                raise ValueError('Can\'t handle `ignore_year == True`. Please re-format your dataset.')
-            if repeat == True:
-                raise ValueError('Can\'t handle `repeat == True`. Please re-format your dataset.')
-            match json_doc:
-                case {
-                    "index": {
-                        "start": start,
-                        "resolution": freq,
-                        "ignore_year": bool(),
-                        "repeat": bool(),
-                    },
-                    **_r,
-                }:
-                    freq = filter_frequencies(freq)
-                    index = low_res_datetime(start=start, freq=freq, periods=len(data))
-                case _:
-                    if json_doc.get("index", {}) != {}:
-                        raise NotImplementedError('Can\'t handle a partially set `index` value. Please re-format your dataset.')
-                    index = low_res_datetime(
-                        start="0001-02-02", freq="1h", periods=len(data)
-                    )
-            for time, val in zip(index, data):
-                make_records(val, {**idx_lvls, index_name: time, "value": val}, res)
-        case {
-            "data": [[str(), dict() | float() | int()], *_] as data,
-            "type": "time_series",
-            **_r,
-        }:
-            if m := SEQ_PAT.match(data[0][0]):
-                idx_type = IndexType.Sequence
-                index_name = json_doc.get(
-                    "index_name", "period" if "p" == m.group(1) else "seq"
-                )
-            else:
-                idx_type = IndexType.Generic
-                index_name = json_doc.get("index_name", idx_name)  # use idx_name if "index_name" does not exist
-            for key, val in data:
-                if idx_type == IndexType.Sequence:
-                    m = SEQ_PAT.match(key)
-                    assert m is not None
-                    key = int(m.group(2))
-                make_records(val, {**idx_lvls, index_name: key}, res)
+            match idx:
+                case {"ignore_year": ignore_year}:
+                    _deprecated("ignore_year", ignore_year)
+                case {"repeat": repeat}:
+                    _deprecated("repeat", repeat)
 
+            index = _time_index(idx, len(data))
+            _from_pairs(zip(index, data), _formatter("noop"))
+        case {"type": "time_series", "data": [float() | int(), *_] as data}:
+            _append_arr(data, _formatter("noop"))
         # arrays
-        case {"type": "array", "data": [str() | float() | int(), *_] as data, **_r}:
-            value_type = json_doc.get("value_type", "float")  # use "float" if "value_type" does not exist
-            index_name = json_doc.get("index_name", "i")  # use "i" if "index_name" does not exist
-
-            if value_type == "duration":
-                try:
-                    data = [pd.Timedelta(filter_frequencies(value)) for value in data]
-                except ValueError as err:
-                    if "invalid unit abbreviation" in repr(err):
-                        raise ValueError('"year" and "month" are ambiguous time units. Please convert them to days.')
-                    else:
-                        raise err
-            elif value_type == "date_time":
-                data = [datetime.fromisoformat(key) for key in data]
-            elif value_type == "float":
-                data = [pd.to_numeric(value) for value in data]
-            elif value_type == "str":
-                pass
-            else:
-                raise NotImplementedError(f"Can't match {value_type} arrays.")
-            for value in data:
-                res.append({index_name: value})
-
-        # date-time
-        case {"type": "date_time", "data": str() as data, **_r}:
-            idx_lvls["value"] = datetime.fromisoformat(data)
-            res.append(idx_lvls)
-
-        # duration
-        case {"type": "duration", "data": int() | str() as data, **_r}:
-            if type(data) == int:
-                data = str(data) + "m"  # integer time unit is "minutes"
-            try:
-                data = pd.Timedelta(filter_frequencies(data))
-            except ValueError as err:
-                if "invalid unit abbreviation" in repr(err):
-                    raise ValueError('"year" and "month" are ambiguous time units. Please convert them to days.')
-                else:
-                    raise err
-            res.append({"value": data})
-
-        # time_pattern
-        case {"type": "time_pattern", **_r}:
-            raise NotImplementedError("Can't convert `time_pattern`. Please convert it to a `time_series`.")
-
+        case {
+            "type": "array",
+            "value_type": value_type,
+            "data": [str() | float() | int(), *_] as data,
+        }:
+            _append_arr(data, _formatter(value_type))
+        case {"type": "array", "data": [float() | int(), *_] as data}:
+            if (value_type := json_doc.get("value_type", "float")) != "float":
+                raise ValueError(f"{value_type=}: unknown type in array: {data[:2]}")
+            _append_arr(data, _formatter(value_type))
+        # date_time | duration | time_pattern
+        case {
+            "type": "date_time" | "duration" | "time_pattern" as data_t,
+            "data": str() | int() as data,
+        }:
+            _append_val(data, _formatter(data_t))
         # values
-        case int() | float() | str() | bool():
-            idx_lvls["value"] = json_doc
-            res.append(idx_lvls)
+        case int() | float() | str() | bool() as data:
+            _append_val(data, _formatter("noop"))
         case _:
-            raise NotImplementedError("Can't match this JSON structure yet.")
+            raise ValueError(f"match not found: {json_doc}")
     return res
 
 

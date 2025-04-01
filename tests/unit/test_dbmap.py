@@ -1,14 +1,14 @@
 import numpy as np
 import pandas as pd
 
-from arrow_expts.spine.dbmap import filter_frequencies, low_res_datetime
+from arrow_expts.spine.dbmap import normalise_freq, low_res_datetime
 
 
 def test_filter_frequencies():
-    assert filter_frequencies("5 years") == "5 Y"
-    assert filter_frequencies("5 year") == "5 Y"
-    assert filter_frequencies("3s") == "3s"
-    assert filter_frequencies("60") == "60m"
+    assert normalise_freq("5 years") == "5 Y"
+    assert normalise_freq("5 year") == "5 Y"
+    assert normalise_freq("3s") == "3s"
+    assert normalise_freq("60") == "60m"
 
 
 def test_low_res_datetime():
