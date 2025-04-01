@@ -1,29 +1,20 @@
 import json
-import subprocess
 
-def test_array_numbers():
-    input = """
-        {
-            "type": "array",
-            "data": [2.3, 23.0, 5.0]
-        }
-    """.strip()
+import pytest
 
-    output = """
-        [
-          {
-            "name": "i",
-            "values": [
-              2.3,
-              23.0,
-              5.0
-            ],
-            "value_type": "number",
-            "type": "array"
-          }
-        ]
-    """.replace(" ","").replace("\n", "")
-    command = f"echo '{input}' | python -m schema.reencode"
-    result = subprocess.check_output(command, shell=True, text=True).strip()
+from arrow_expts.schema.models import Array
+from arrow_expts.schema.reencode import series_to_col, to_df, to_tables
 
-    assert result == output
+from ..conftest import JSONDIR
+
+
+@pytest.mark.parametrize("fname,arr", [("array.numbers.json", [2.3, 23.0, 5.0])])
+def test_json_to_tbl(fname, arr):
+    input_json = JSONDIR / fname
+    data = json.loads(input_json.read_text())
+
+    exp = Array(name="i", values=arr)
+    df = to_df(data)
+
+    assert series_to_col(df[exp.name]) == exp
+    assert to_tables(df) == [exp]
