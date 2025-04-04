@@ -107,12 +107,10 @@ def _atoi(name: str, val: str) -> dict[str, int | str]:
         return {name: val}
 
 
-_FmtIdx: TypeAlias = (
-    Callable[[str, str], dict[str, Any]] | Callable[[str, dict], dict[str, Any]]
-)
+_FmtIdx: TypeAlias = Callable[[str, str | Any], dict[str, Any]]
 
 
-def _formatter(index_type: str | dict) -> _FmtIdx:
+def _formatter(index_type: str) -> _FmtIdx:
     match index_type:
         case "date_time" | "datetime":
             return lambda name, key: {name: datetime.fromisoformat(key)}
