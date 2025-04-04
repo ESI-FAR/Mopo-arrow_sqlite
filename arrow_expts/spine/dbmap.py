@@ -17,11 +17,20 @@ def json_loads_ts(json_str: str | bytes):
     return pd.Series(json.loads(json_str)["data"])
 
 
+# Regex pattern to indentify numerical sequences encoded as string
 SEQ_PAT = re.compile(r"(t|p)([0-9]+)")
+# Regex pattern to identify a number encoded as a string
 FREQ_PAT = re.compile("^[0-9]+$")
 
 
 def normalise_freq(freq: int | str):
+    """Normalise integer/string to frequency.
+
+    The frequency value is as understood by `pandas.Timedelta`.  Note
+    that ambiguous values such as month or year are still retained
+    with the intention to handle later in the pipeline.
+
+    """
     if isinstance(freq, int):
         return str(freq) + "m"
     if FREQ_PAT.match(freq):
@@ -99,7 +108,12 @@ def low_res_datetime(start: str, freq: str, periods: int) -> pd.DatetimeIndex:
 
 
 def _atoi(name: str, val: str) -> dict[str, int | str]:
-    """Convert string to number if it matches `t0001` or `p2001`."""
+    """Convert string to number if it matches `t0001` or `p2001`.
+
+    If a match is found, also override the name to "time" or "period"
+    respectively.
+
+    """
     if m := SEQ_PAT.match(val):
         name = "period" if "p" == m.group(1) else "time"
         return {name: int(m.group(2))}
@@ -111,6 +125,32 @@ _FmtIdx: TypeAlias = Callable[[str, str | Any], dict[str, Any]]
 
 
 def _formatter(index_type: str) -> _FmtIdx:
+    """Get a function that formats the values of a name value pair.
+
+    The name is the column name.  The function returned depends on the
+    `index_type`.  An unknown `index_type` returns a noop formatter,
+    but it also issues a warning.  A noop formatter can be requested
+    explicitly by passing the type "noop"; no warning is issued in
+    this case.
+
+    Index types:
+    ============
+
+    - "date_time" :: converts value to `datetime`
+
+    - "duration" :: converts string to `pandas.Timedelta` compatible
+      argument; note it still allows for ambiguous units like month or
+      year.
+
+    - "str" :: convert the value to integer if it matches `t0001` or
+      `p2002`, and the name to "time" and "period" respectively;
+      without a match it is a noop.
+
+    - "float" | "time_pattern" | "noop" :: noop
+
+    - fallback :: noop with a warning
+
+    """
     match index_type:
         case "date_time" | "datetime":
             return lambda name, key: {name: datetime.fromisoformat(key)}
@@ -133,12 +173,29 @@ def make_records(
     *,
     idx_name: str = "default",
 ) -> list[dict]:
-    """Parse time-series w/ a multi-index stored as a nested map
+    """Parse parameter value into a list of records
 
-    Ask Suvayu for the example DB
+    Spine db stores parameter_value as JSON.  After the JSON blob has
+    been decoded to a Python dict, this function can transform it into
+    a list of records (dict) like a table.  These records can then be
+    consumed by Pandas to create a dataframe.
+
+    The parsing logic works recursively by traversing depth first.
+    Each call incrementally accumulates a cell/level of a record in
+    the `idx_lvls` dictionary, once the traversal reaches a leaf node,
+    the final record is appended to the list `res`.  The final result
+    is also returned by the function, allowing for composition.
+
+    If at any level, the index name is missing, a default can be
+    provided by setting a default `idx_name`.
 
     """
 
+    # NOTE: The private functions below are closures, defined early in
+    # the function such that they have the original arguments to
+    # `make_records` available to them, but nothing more.  They either
+    # help with some computation, raise a warning, or are helpers to
+    # append to the result.
     def _from_pairs(data: Iterable[Iterable], fmt: _FmtIdx):
         assert isinstance(json_doc, dict)
         index_name = json_doc.get("index_name", idx_name)

@@ -5,7 +5,7 @@ import pytest
 from arrow_expts.schema.models import Array
 from arrow_expts.schema.reencode import series_to_col, to_df, to_tables
 
-from ..conftest import JSONDIR
+from .conftest import JSONDIR
 
 
 @pytest.mark.parametrize("fname,arr", [("array.numbers.json", [2.3, 23.0, 5.0])])
