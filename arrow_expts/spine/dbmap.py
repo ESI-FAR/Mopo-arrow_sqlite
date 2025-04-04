@@ -163,9 +163,6 @@ def make_records(
         for value in arr:
             res.append({**idx_lvls, **fmt(index_name, value)})
 
-    def _append_val(value, fmt: _FmtIdx):
-        res.append({**idx_lvls, **fmt("value", value)})
-
     match json_doc:
         # maps
         case {"data": dict() as data, "type": "map", "index_type": index_type}:
@@ -212,10 +209,12 @@ def make_records(
             "type": "date_time" | "duration" | "time_pattern" as data_t,
             "data": str() | int() as data,
         }:
-            _append_val(data, _formatter(data_t))
+            _fmt = _formatter(data_t)
+            res.append({**idx_lvls, **_fmt("value", data)})
         # values
         case int() | float() | str() | bool() as data:
-            _append_val(data, _formatter("noop"))
+            _fmt = _formatter("noop")
+            res.append({**idx_lvls, **_fmt("value", data)})
         case _:
             raise ValueError(f"match not found: {json_doc}")
     return res
