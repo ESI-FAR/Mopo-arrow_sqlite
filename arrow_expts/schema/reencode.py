@@ -15,7 +15,7 @@
 from datetime import datetime, timedelta
 import json
 from pathlib import Path
-from typing import cast, overload
+from typing import overload
 
 import pandas as pd
 import pyarrow as pa
@@ -38,7 +38,7 @@ from .models import (
 
 
 def to_df(json_doc: dict):
-    data = make_records(json_doc, {}, [], idx_name="metric")
+    data = make_records(json_doc, {}, [])
     # NOTE: don't use pyarrow, difficult to support mixed types
     # tbl = pa.Table.from_pylist(data)
     # df = tbl.to_pandas(types_mapper=pd.ArrowDtype)
