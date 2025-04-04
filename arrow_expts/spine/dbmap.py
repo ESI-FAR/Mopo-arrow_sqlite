@@ -165,11 +165,19 @@ def make_records(
 
     match json_doc:
         # maps
-        case {"data": dict() as data, "type": "map", "index_type": index_type}:
+        case {"data": dict() as data, "type": "map"}:
+            # NOTE: is "index_type" mandatory?  In case it's not, we
+            # check for it separately, and fallback in a way that
+            # raises a warning but doesn't crash; same for the
+            # 2-column array variant below.
+            index_type = json_doc.get("index_type", "undefined-index_type-in-map")
             _from_pairs(data.items(), _formatter(index_type))
         case {"data": dict() as data, "index_type": index_type}:
+            # NOTE: relies on other types not having "index_type";
+            # same for the 2-column array variant below.
             _from_pairs(data.items(), _formatter(index_type))
-        case {"data": [[_, _], *_] as data, "type": "map", "index_type": index_type}:
+        case {"data": [[_, _], *_] as data, "type": "map"}:
+            index_type = json_doc.get("index_type", "undefined-index_type-in-map")
             _from_pairs(data, _formatter(index_type))
         case {"data": [[_, _], *_] as data, "index_type": index_type}:
             _from_pairs(data, _formatter(index_type))
