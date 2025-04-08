@@ -270,9 +270,7 @@ def make_records(
         }:
             _append_arr(data, _formatter(value_type))
         case {"type": "array", "data": [float() | int(), *_] as data}:
-            if (value_type := json_doc.get("value_type", "float")) != "float":
-                raise ValueError(f"{value_type=}: unknown type in array: {data[:2]}")
-            _append_arr(data, _formatter(value_type))
+            _append_arr(data, _formatter("float"))
         # date_time | duration | time_pattern
         case {
             "type": "date_time" | "duration" | "time_pattern" as data_t,
