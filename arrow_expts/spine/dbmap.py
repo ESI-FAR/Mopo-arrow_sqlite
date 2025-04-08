@@ -171,7 +171,7 @@ def make_records(
     idx_lvls: dict,
     res: list[dict],
     *,
-    idx_name: str = "default",
+    lvlname_base: str = "default",
 ) -> list[dict]:
     """Parse parameter value into a list of records
 
@@ -186,10 +186,13 @@ def make_records(
     the final record is appended to the list `res`.  The final result
     is also returned by the function, allowing for composition.
 
-    If at any level, the index name is missing, a default can be
-    provided by setting a default `idx_name`.
+    If at any level, the index level name is missing, a default base
+    name can be provided by setting a default `lvlname_base`.  The
+    level name is derived by concatenating the base name with depth
+    level.
 
     """
+    lvlname = lvlname_base + f"{len(idx_lvls)}"
 
     # NOTE: The private functions below are closures, defined early in
     # the function such that they have the original arguments to
@@ -198,9 +201,10 @@ def make_records(
     # append to the result.
     def _from_pairs(data: Iterable[Iterable], fmt: _FmtIdx):
         assert isinstance(json_doc, dict)
-        index_name = json_doc.get("index_name", idx_name)
+        index_name = json_doc.get("index_name", lvlname)
         for key, val in data:
-            make_records(val, {**idx_lvls, **fmt(index_name, key)}, res)
+            _lvls = {**idx_lvls, **fmt(index_name, key)}
+            make_records(val, _lvls, res, lvlname_base=lvlname_base)
 
     def _deprecated(var: str, val: Any):
         assert isinstance(json_doc, dict)
