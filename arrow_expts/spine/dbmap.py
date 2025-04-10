@@ -107,7 +107,7 @@ def low_res_datetime(start: str, freq: str, periods: int) -> pd.DatetimeIndex:
     return date_array_with_frequency
 
 
-def _atoi(name: str, val: str) -> dict[str, int | str]:
+def _atoi(val: str) -> int | str:
     """Convert string to number if it matches `t0001` or `p2001`.
 
     If a match is found, also override the name to "time" or "period"
@@ -116,9 +116,9 @@ def _atoi(name: str, val: str) -> dict[str, int | str]:
     """
     if m := SEQ_PAT.match(val):
         name = "period" if "p" == m.group(1) else "time"
-        return {name: int(m.group(2))}
+        return int(m.group(2))
     else:
-        return {name: val}
+        return val
 
 
 _FmtIdx: TypeAlias = Callable[[str, str | Any], dict[str, Any]]
@@ -157,8 +157,11 @@ def _formatter(index_type: str) -> _FmtIdx:
         case "duration":
             return lambda name, key: {name: normalise_freq(key)}
         case "str":
-            # custom handling when data matches `SEQ_PAT`
-            return _atoi
+            # don't use lambda, can't add type hints
+            def _atoi_dict(name: str, val: str) -> dict[str, int | str]:
+                return {name: _atoi(val)}
+
+            return _atoi_dict
         case "float" | "time_pattern" | "timepattern" | "noop":
             return lambda name, key: {name: key}
         case _:  # fallback to noop w/ a warning
