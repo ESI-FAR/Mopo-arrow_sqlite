@@ -21,6 +21,8 @@ def json_loads_ts(json_str: str | bytes):
 SEQ_PAT = re.compile(r"(t|p)([0-9]+)")
 # Regex pattern to identify a number encoded as a string
 FREQ_PAT = re.compile("^[0-9]+$")
+# Regex pattern to duration strings
+DUR_PAT = re.compile(r"([0-9]+) *(Y|M|W|D|h|min|s)")
 
 
 def normalise_freq(freq: int | str):
@@ -107,6 +109,30 @@ def low_res_datetime(start: str, freq: str, periods: int) -> pd.DatetimeIndex:
     return date_array_with_frequency
 
 
+def to_dateoffset(val: str) -> pd.DateOffset:
+    if (m := DUR_PAT.match(val)) is None:
+        raise ValueError(f"{val}: bad duration value")
+    num, freq = m.groups()
+    match freq:
+        case "Y":
+            return pd.DateOffset(years=num)
+        case "M":
+            return pd.DateOffset(months=num)
+        case "W":
+            return pd.DateOffset(weeks=num)
+        case "D":
+            return pd.DateOffset(days=num)
+        case "h":
+            return pd.DateOffset(hours=num)
+        case "min":
+            return pd.DateOffset(minutes=num)
+        case "s":
+            pd.DateOffset(seconds=num)
+        case _:
+            # should not get here
+            raise ValueError(f"{val}: unknown duration")
+
+
 def _atoi(val: str) -> int | str:
     """Convert string to number if it matches `t0001` or `p2001`.
 
@@ -138,9 +164,8 @@ def _formatter(index_type: str) -> _FmtIdx:
 
     - "date_time" :: converts value to `datetime`
 
-    - "duration" :: converts string to `pandas.Timedelta` compatible
-      argument; note it still allows for ambiguous units like month or
-      year.
+    - "duration" :: converts string to `pandas.DateOffset`; this
+      allows for ambiguous units like month or year.
 
     - "str" :: convert the value to integer if it matches `t0001` or
       `p2002`, and the name to "time" and "period" respectively;
@@ -155,7 +180,7 @@ def _formatter(index_type: str) -> _FmtIdx:
         case "date_time" | "datetime":
             return lambda name, key: {name: datetime.fromisoformat(key)}
         case "duration":
-            return lambda name, key: {name: normalise_freq(key)}
+            return lambda name, key: {name: to_dateoffset(normalise_freq(key))}
         case "str":
             # don't use lambda, can't add type hints
             def _atoi_dict(name: str, val: str) -> dict[str, int | str]:
