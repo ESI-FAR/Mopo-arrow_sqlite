@@ -202,15 +202,23 @@ def make_records(
     # `make_records` available to them, but nothing more.  They either
     # help with some computation, raise a warning, or are helpers to
     # append to the result.
+    _msg_assert = (
+        "for the type checker: rest of the function expects `json_doc` to be a dict"
+    )
+
+    def _uniquify_index_name(default: str) -> str:
+        assert isinstance(json_doc, dict), _msg_assert
+        index_name = json_doc.get("index_name", default)
+        return index_name + f"{len(idx_lvls)}" if index_name in idx_lvls else index_name
+
     def _from_pairs(data: Iterable[Iterable], fmt: _FmtIdx):
-        assert isinstance(json_doc, dict)
-        index_name = json_doc.get("index_name", lvlname)
+        index_name = _uniquify_index_name(lvlname)
         for key, val in data:
             _lvls = {**idx_lvls, **fmt(index_name, key)}
             make_records(val, _lvls, res, lvlname_base=lvlname_base)
 
     def _deprecated(var: str, val: Any):
-        assert isinstance(json_doc, dict)
+        assert isinstance(json_doc, dict), _msg_assert
         index_name = json_doc.get("index_name", lvlname)
         msg = f"{index_name}: {var}={val} is deprecated, handle in model, defaulting to time index from 0001-01-01."
         warn(msg, DeprecationWarning)
@@ -222,8 +230,7 @@ def make_records(
         return low_res_datetime(start=start, freq=freq, periods=length)
 
     def _append_arr(arr: Iterable, fmt: _FmtIdx):
-        assert isinstance(json_doc, dict)
-        index_name = json_doc.get("index_name", "i")
+        index_name = _uniquify_index_name("i")
         for value in arr:
             res.append({**idx_lvls, **fmt(index_name, value)})
 
