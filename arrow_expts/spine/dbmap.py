@@ -142,7 +142,6 @@ def _atoi(val: str) -> int | str:
 
     """
     if m := SEQ_PAT.match(val):
-        name = "period" if "p" == m.group(1) else "time"
         return int(m.group(2))
     else:
         return val
