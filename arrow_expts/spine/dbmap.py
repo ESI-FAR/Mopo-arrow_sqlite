@@ -299,7 +299,10 @@ def make_records(
             index = _time_index(idx, len(data))
             _from_pairs(zip(index, data), _formatter("noop"))
         case {"type": "time_series", "data": [float() | int(), *_] as data}:
-            _append_arr(data, _formatter("noop"))
+            msg = "array-like 'time_series' without time-stamps, relies on 'ignore_year' and 'repeat' implicitly"
+            warn(msg, DeprecationWarning)
+            updated = {**json_doc, "index": {"ignore_year": True, "repeat": True}}
+            make_records(updated, idx_lvls, res, lvlname_base=lvlname_base)
         # time_pattern
         case {"type": "time_pattern", "data": dict() as data}:
             _from_pairs(data.items(), _formatter("time_pattern"))
