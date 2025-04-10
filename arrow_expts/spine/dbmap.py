@@ -208,7 +208,7 @@ def make_records(
 
     def _deprecated(var: str, val: Any):
         assert isinstance(json_doc, dict)
-        index_name = json_doc.get("index_name")
+        index_name = json_doc.get("index_name", lvlname)
         msg = f"{index_name}: {var}={val} is deprecated, handle in model, defaulting to time index from 0001-01-01."
         warn(msg, DeprecationWarning)
 
