@@ -128,7 +128,7 @@ def to_dateoffset(val: str) -> pd.DateOffset:
         case "min":
             return pd.DateOffset(minutes=num)
         case "s":
-            pd.DateOffset(seconds=num)
+            return pd.DateOffset(seconds=num)
         case _:
             # should not get here
             raise ValueError(f"{val}: unknown duration")
