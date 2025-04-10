@@ -14,6 +14,7 @@
 # from dataclasses import dataclass
 # from dataclasses import field
 from datetime import datetime, timedelta
+from re import Pattern
 from typing import Annotated, Literal, TypeAlias
 
 import pandas as pd
@@ -34,7 +35,13 @@ Timedeltas: TypeAlias = list[timedelta]
 
 # FIXME: how to do w/o Pydantic?
 time_pat_re = r"(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+"
-TimePattern: TypeAlias = Annotated[str, StringConstraints(pattern=time_pat_re)]
+@dataclass(frozen=True)
+class TimePattern:
+    pattern: str
+    re: str | Pattern[str] = time_pat_re
+
+
+# TimePattern: TypeAlias = Annotated[str, StringConstraints(pattern=time_pat_re)]
 TimePatterns: TypeAlias = list[TimePattern]
 
 NullableIntegers: TypeAlias = list[int | None]

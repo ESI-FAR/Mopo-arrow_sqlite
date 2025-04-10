@@ -9,6 +9,7 @@ import weakref
 import pandas as pd
 import numpy as np
 
+from arrow_expts.schema.models import TimePattern
 from spinedb_api import DatabaseMapping
 from spinedb_api.temp_id import TempId
 
@@ -187,7 +188,9 @@ def _formatter(index_type: str) -> _FmtIdx:
                 return {name: _atoi(val)}
 
             return _atoi_dict
-        case "float" | "time_pattern" | "timepattern" | "noop":
+        case "time_pattern" | "timepattern":
+            return lambda name, key: {name: TimePattern(key)}
+        case "float" | "noop":
             return lambda name, key: {name: key}
         case _:  # fallback to noop w/ a warning
             warn(f"{index_type}: unknown type, fallback to noop formatter")
@@ -297,6 +300,9 @@ def make_records(
             _from_pairs(zip(index, data), _formatter("noop"))
         case {"type": "time_series", "data": [float() | int(), *_] as data}:
             _append_arr(data, _formatter("noop"))
+        # time_pattern
+        case {"type": "time_pattern", "data": dict() as data}:
+            _from_pairs(data.items(), _formatter("time_pattern"))
         # arrays
         case {
             "type": "array",
@@ -306,9 +312,9 @@ def make_records(
             _append_arr(data, _formatter(value_type))
         case {"type": "array", "data": [float() | int(), *_] as data}:
             _append_arr(data, _formatter("float"))
-        # date_time | duration | time_pattern
+        # date_time | duration
         case {
-            "type": "date_time" | "duration" | "time_pattern" as data_t,
+            "type": "date_time" | "duration" as data_t,
             "data": str() | int() as data,
         }:
             _fmt = _formatter(data_t)
