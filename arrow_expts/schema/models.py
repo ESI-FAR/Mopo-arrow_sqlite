@@ -2,6 +2,7 @@
 # /// script
 # requires-python = ">=3.10"
 # dependencies = [
+#   "python-dateutil",
 #   "pandas>=2",
 #   "pydantic>=2",
 # ]
@@ -17,6 +18,8 @@ from datetime import datetime, timedelta
 from re import Pattern
 from typing import Annotated, Literal, TypeAlias
 
+from dateutil.relativedelta import relativedelta
+import numpy as np
 import pandas as pd
 from pydantic import RootModel
 from pydantic.dataclasses import dataclass
@@ -93,12 +96,23 @@ IndexValueTypeNames: TypeAlias = Literal[
 type_map: dict[type, ValueTypeNames] = {
     str: "string",
     int: "integer",
+    np.int8: "integer",
+    np.int16: "integer",
+    np.int32: "integer",
+    np.int64: "integer",
     float: "number",
+    np.float16: "number",
+    np.float32: "number",
+    np.float64: "number",
+    np.float128: "number",
     bool: "boolean",
+    np.bool: "boolean",
     datetime: "date-time",
     pd.Timestamp: "date-time",
     timedelta: "duration",
     pd.Timedelta: "duration",
+    relativedelta: "duration",
+    pd.DateOffset: "duration",
     TimePattern: "time-pattern",
     bytes: "string",
 }
