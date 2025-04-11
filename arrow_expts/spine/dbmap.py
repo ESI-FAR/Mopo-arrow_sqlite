@@ -26,7 +26,7 @@ FREQ_PAT = re.compile("^[0-9]+$")
 DUR_PAT = re.compile(r"([0-9]+) *(Y|M|W|D|h|min|s)")
 
 
-def normalise_freq(freq: int | str):
+def _normalise_freq(freq: int | str):
     """Normalise integer/string to frequency.
 
     The frequency value is as understood by `pandas.Timedelta`.  Note
@@ -58,7 +58,7 @@ def normalise_freq(freq: int | str):
     )
 
 
-to_numpy = {
+_to_numpy_time_units = {
     "Y": "Y",
     "M": "M",
     "W": "W",
@@ -69,7 +69,7 @@ to_numpy = {
 }
 
 
-def low_res_datetime(start: str, freq: str, periods: int) -> pd.DatetimeIndex:
+def _low_res_datetime(start: str, freq: str, periods: int) -> pd.DatetimeIndex:
     """Create pd.DatetimeIndex with lower time resolution.
 
     The default resolution of pd.date_time is [ns], which puts
@@ -97,7 +97,7 @@ def low_res_datetime(start: str, freq: str, periods: int) -> pd.DatetimeIndex:
     start_date_np = np.datetime64(start, "s")
     # print(f"start_date_np: {start_date_np}")
     # print(to_numpy[unit])
-    freq_np = np.timedelta64(int(number_str), to_numpy[unit])
+    freq_np = np.timedelta64(int(number_str), _to_numpy_time_units[unit])
     # print(f"freq_np: {freq_np}")
     freq_pd = pd.Timedelta(freq_np)
     # print(f"freq_pd: {freq_pd}")
@@ -110,7 +110,7 @@ def low_res_datetime(start: str, freq: str, periods: int) -> pd.DatetimeIndex:
     return date_array_with_frequency
 
 
-def to_dateoffset(val: str) -> pd.DateOffset:
+def _to_dateoffset(val: str) -> pd.DateOffset:
     if (m := DUR_PAT.match(val)) is None:
         raise ValueError(f"{val}: bad duration value")
     num_str, freq = m.groups()
@@ -181,7 +181,7 @@ def _formatter(index_type: str) -> _FmtIdx:
         case "date_time" | "datetime":
             return lambda name, key: {name: datetime.fromisoformat(key)}
         case "duration":
-            return lambda name, key: {name: to_dateoffset(normalise_freq(key))}
+            return lambda name, key: {name: _to_dateoffset(_normalise_freq(key))}
         case "str":
             # don't use lambda, can't add type hints
             def _atoi_dict(name: str, val: str) -> dict[str, int | str]:
@@ -254,8 +254,8 @@ def make_records(
     def _time_index(idx: dict, length: int):
         start = idx.get("start", "0001-01-01T00:00:00")
         resolution = idx.get("resolution", "1h")
-        freq = normalise_freq(resolution)
-        return low_res_datetime(start=start, freq=freq, periods=length)
+        freq = _normalise_freq(resolution)
+        return _low_res_datetime(start=start, freq=freq, periods=length)
 
     def _append_arr(arr: Iterable, fmt: _FmtIdx):
         index_name = _uniquify_index_name("i")
