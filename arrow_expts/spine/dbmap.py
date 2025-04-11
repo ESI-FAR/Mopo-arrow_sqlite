@@ -35,10 +35,10 @@ def normalise_freq(freq: int | str):
 
     """
     if isinstance(freq, int):
-        return str(freq) + "m"
+        return str(freq) + "min"
     if FREQ_PAT.match(freq):
         # If frequency is an integer, the implied unit is "minutes"
-        return freq + "m"
+        return freq + "min"
     # not very robust yet
     return (
         freq.replace("years", "Y")
@@ -113,7 +113,8 @@ def low_res_datetime(start: str, freq: str, periods: int) -> pd.DatetimeIndex:
 def to_dateoffset(val: str) -> pd.DateOffset:
     if (m := DUR_PAT.match(val)) is None:
         raise ValueError(f"{val}: bad duration value")
-    num, freq = m.groups()
+    num_str, freq = m.groups()
+    num = int(num_str)
     match freq:
         case "Y":
             return pd.DateOffset(years=num)
