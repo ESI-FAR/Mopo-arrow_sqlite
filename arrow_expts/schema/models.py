@@ -28,7 +28,7 @@ Floats: TypeAlias = list[float]
 Integers: TypeAlias = list[int]
 Strings: TypeAlias = list[str]
 Booleans: TypeAlias = list[bool]
-BytesList: TypeAlias = list[bytes]
+BytesList: TypeAlias = list[bytes]  # array of bytes to support mixed types
 
 Datetimes: TypeAlias = list[datetime]
 Timedeltas: TypeAlias = list[timedelta]
@@ -48,6 +48,7 @@ NullableIntegers: TypeAlias = list[int | None]
 NullableFloats: TypeAlias = list[float | None]
 NullableStrings: TypeAlias = list[str | None]
 NullableBooleans: TypeAlias = list[bool | None]
+NullableBytesList: TypeAlias = list[bytes | None]
 NullableDatetimes: TypeAlias = list[datetime | None]
 NullableTimedeltas: TypeAlias = list[timedelta | None]
 NullableTimePatterns: TypeAlias = list[TimePattern | None]
@@ -68,6 +69,7 @@ NullableValueTypes: TypeAlias = (
     | NullableStrings
     | NullableFloats
     | NullableBooleans
+    | NullableBytesList
     | NullableDatetimes
     | NullableTimedeltas
     | NullableTimePatterns
@@ -75,7 +77,14 @@ NullableValueTypes: TypeAlias = (
 
 
 ValueTypeNames: TypeAlias = Literal[
-    "string", "integer", "number", "boolean", "date-time", "duration", "time-pattern"
+    "string",
+    "integer",
+    "number",
+    "boolean",
+    "bytes",
+    "date-time",
+    "duration",
+    "time-pattern",
 ]
 IndexValueTypeNames: TypeAlias = Literal[
     "string", "integer", "date-time", "duration", "time-pattern"
@@ -198,27 +207,11 @@ class Array(_TypeInferMixin):
     type: Literal["array"] = "array"
 
 
-@dataclass(frozen=True)
-class BytesArray(_TypeInferMixin):
-    """Array of bytes to store mixed types"""
-
-    name: str
-    values: BytesList
-    value_type: ValueTypeNames = field(init=False)
-    type: Literal["bytes_array"] = "bytes_array"
-
-
 # NOTE: To add run-length encoding to the schema, add it to the
 # following type union following which, we need to implement a
 # converter to an Arrow array type
 Table: TypeAlias = list[
-    RunEndIndex
-    | DictEncodedIndex
-    | ArrayIndex
-    | RunEndArray
-    | DictEncodedArray
-    | Array
-    | BytesArray
+    RunEndIndex | DictEncodedIndex | ArrayIndex | RunEndArray | DictEncodedArray | Array
 ]
 
 
