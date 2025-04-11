@@ -65,6 +65,20 @@
               "items": {
                 "anyOf": [
                   {
+                    "format": "binary",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
                     "format": "date-time",
                     "type": "string"
                   },
@@ -112,6 +126,7 @@
             "integer",
             "number",
             "boolean",
+            "bytes",
             "date-time",
             "duration",
             "time-pattern"
@@ -284,6 +299,20 @@
               "items": {
                 "anyOf": [
                   {
+                    "format": "binary",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
                     "format": "date-time",
                     "type": "string"
                   },
@@ -331,6 +360,7 @@
             "integer",
             "number",
             "boolean",
+            "bytes",
             "date-time",
             "duration",
             "time-pattern"
@@ -505,6 +535,20 @@
               "items": {
                 "anyOf": [
                   {
+                    "format": "binary",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
                     "format": "date-time",
                     "type": "string"
                   },
@@ -552,6 +596,7 @@
             "integer",
             "number",
             "boolean",
+            "bytes",
             "date-time",
             "duration",
             "time-pattern"
