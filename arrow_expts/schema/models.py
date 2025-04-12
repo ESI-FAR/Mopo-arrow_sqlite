@@ -112,7 +112,7 @@ type_map: dict[type, ValueTypeNames] = {
     np.float16: "number",
     np.float32: "number",
     np.float64: "number",
-    np.float128: "number",
+    # np.float128: "number",  # not available on macos
     bool: "boolean",
     np.bool: "boolean",
     datetime: "date-time",
