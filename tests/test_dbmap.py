@@ -1,4 +1,3 @@
-from datetime import datetime
 import json
 from typing import Callable
 
@@ -55,7 +54,7 @@ def fmt_durations(val: str | int):
 @pytest.mark.parametrize(
     "type_,value,fmt",
     [
-        ("date_time", "2019-06-01T22:15:00+01:00", datetime.fromisoformat),
+        ("date_time", "2019-06-01T22:15:00+01:00", pd.Timestamp),
         ("duration", "1h", fmt_durations),
         ("duration", 60, fmt_durations),
         ("duration", "1 hour", fmt_durations),
@@ -91,5 +90,5 @@ def test_time_series(part: str, interval: str):
     # index column name matches
     index_name = data.get("index_name", "default0")
     assert index_name in res[0]
-    assert isinstance(res[0][index_name], datetime)
+    assert isinstance(res[0][index_name], pd.Timestamp)
     assert res[1][index_name] - res[0][index_name] == pd.Timedelta(interval)

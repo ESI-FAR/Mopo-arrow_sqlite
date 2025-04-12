@@ -1,5 +1,4 @@
 from argparse import ArgumentParser
-from datetime import datetime
 import json
 import re
 from typing import cast, Any, Callable, Iterable, TypeAlias
@@ -85,22 +84,14 @@ def _low_res_datetime(start: str, freq: str, periods: int) -> pd.DatetimeIndex:
     `pd.Timestamp.max`.
 
     """
-    if re_match := re.search(r"^([0-9]+) *(.*)$", freq):
-        period_parts = re_match.groups()
+    if re_match := DUR_PAT.match(_normalise_freq(freq)):
+        number_str, unit = re_match.groups()
     else:
         raise ValueError(f"invalid frequency: {freq!r}")
 
-    if len(period_parts) != 2:
-        raise ValueError(f"invalid frequency: {freq!r}")
-
-    number_str, unit = period_parts
     start_date_np = np.datetime64(start, "s")
-    # print(f"start_date_np: {start_date_np}")
-    # print(to_numpy[unit])
     freq_np = np.timedelta64(int(number_str), _to_numpy_time_units[unit])
-    # print(f"freq_np: {freq_np}")
     freq_pd = pd.Timedelta(freq_np)
-    # print(f"freq_pd: {freq_pd}")
 
     date_array = np.arange(start_date_np, start_date_np + periods * freq_np, freq_np)
     date_array_with_frequency = pd.DatetimeIndex(
@@ -179,7 +170,7 @@ def _formatter(index_type: str) -> _FmtIdx:
     """
     match index_type:
         case "date_time" | "datetime":
-            return lambda name, key: {name: datetime.fromisoformat(key)}
+            return lambda name, key: {name: pd.Timestamp(key)}
         case "duration":
             return lambda name, key: {name: _to_dateoffset(_normalise_freq(key))}
         case "str":
@@ -254,8 +245,7 @@ def make_records(
     def _time_index(idx: dict, length: int):
         start = idx.get("start", "0001-01-01T00:00:00")
         resolution = idx.get("resolution", "1h")
-        freq = _normalise_freq(resolution)
-        return _low_res_datetime(start=start, freq=freq, periods=length)
+        return _low_res_datetime(start=start, freq=resolution, periods=length)
 
     def _append_arr(arr: Iterable, fmt: _FmtIdx):
         index_name = _uniquify_index_name("i")
