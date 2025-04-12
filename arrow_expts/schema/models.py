@@ -8,9 +8,7 @@
 # ]
 # ///
 
-"""Write JSON schema for JSON blob in SpineDB
-
-"""
+"""Write JSON schema for JSON blob in SpineDB"""
 
 from datetime import datetime, timedelta
 from typing import Annotated, Literal, TypeAlias

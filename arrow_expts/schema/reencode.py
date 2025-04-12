@@ -8,9 +8,7 @@
 # ]
 # ///
 
-"""Reencode old map type JSON to new table/tables type JSON
-
-"""
+"""Reencode old map type JSON to new table/tables type JSON"""
 
 from datetime import datetime, timedelta
 import json
