@@ -19,6 +19,11 @@ dependencies = [
      "spinedb-api",
      "sqlalchemy",
 ]
+[project.optional-dependencies]
+dev = [
+    "mypy",
+    "pytest",
+]
 
 [tool.hatch.metadata.source]
 include = ["arrow_expts"]
