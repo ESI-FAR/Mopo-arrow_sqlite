@@ -18,7 +18,7 @@ def json_loads_ts(json_str: str | bytes):
 
 
 # Regex pattern to indentify numerical sequences encoded as string
-SEQ_PAT = re.compile(r"(t|p)([0-9]+)")
+SEQ_PAT = re.compile(r"^(t|p)([0-9]+)$")
 # Regex pattern to identify a number encoded as a string
 FREQ_PAT = re.compile("^[0-9]+$")
 # Regex pattern to duration strings

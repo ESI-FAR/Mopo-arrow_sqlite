@@ -39,6 +39,14 @@ def test_low_res_datetime():
     assert res[0] == pd.Timestamp("0001-01-01")
 
 
+@pytest.mark.parametrize(
+    "val, expect",
+    [("foo", "foo"), ("t0012", 12), ("p2023", 2023), ("t0012.1", "t0012.1")],
+)
+def test_atoi(val: str, expect: int | str):
+    assert expect == _atoi(val)
+
+
 @pytest.mark.parametrize("part", ["durations", "numbers", "strings"])
 def test_arrays(part: str):
     data = json.loads((JSONDIR / f"array.{part}.json").read_text())
