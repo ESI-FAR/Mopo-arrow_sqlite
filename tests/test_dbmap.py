@@ -1,4 +1,5 @@
 import json
+from types import NoneType
 from typing import Callable
 
 import numpy as np
@@ -92,3 +93,36 @@ def test_time_series(part: str, interval: str):
     assert index_name in res[0]
     assert isinstance(res[0][index_name], pd.Timestamp)
     assert res[1][index_name] - res[0][index_name] == pd.Timedelta(interval)
+
+
+@pytest.mark.parametrize(
+    "part, lvls, types",
+    [
+        (
+            "dictionary",
+            ["default0", "default1", "value"],
+            [pd.Timestamp, pd.DateOffset, (float, int)],
+        ),
+        (
+            "stochastic-time-series-antti",
+            ["stochastic_scenario", "analysis_time", "default2", "value"],
+            [str, pd.Timestamp, pd.Timestamp, (float, int)],
+        ),
+        (
+            "stochastic-time-series",
+            ["Forecast time", "Target time", "Stochastic scenario", "value"],
+            [pd.Timestamp, pd.Timestamp, int, (float, int)],
+        ),
+        ("two-column-array", ["default0", "value"], [str, (float, int)]),
+    ],
+)
+def test_map(part: str, lvls: list[str], types: list[type]):
+    data = json.loads((JSONDIR / f"map.{part}.json").read_text())
+    res = make_records(data, {}, [])
+
+    ncols = len(lvls)
+    assert all(len(i) <= ncols for i in res)
+    # fallback to `NoneType` to account for missing values
+    assert all(
+        isinstance(i.get(k), (t, NoneType)) for i in res for k, t in zip(lvls, types)
+    )
