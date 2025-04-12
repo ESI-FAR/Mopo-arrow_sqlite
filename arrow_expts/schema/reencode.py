@@ -18,10 +18,9 @@ from pathlib import Path
 from typing import overload
 
 import pandas as pd
-import pyarrow as pa
 from pydantic import RootModel
 
-from rich.pretty import pprint
+from rich.pretty import pprint  # noqa: F401, keep for debugging
 
 from ..spine.dbmap import make_records
 from .models import (
