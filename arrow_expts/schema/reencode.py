@@ -58,7 +58,7 @@ def rl_encode(arr: Array) -> RunLengthArray: ...
 def rl_encode(arr: ArrayIndex) -> RunLengthIndex: ...
 
 
-def rl_encode(arr: ArrayIndex | Array) -> RunLengthIndex | RunLengthArray:
+def rl_encode(arr):
     last = SENTINEL
     values, run_len = [], []
     for val in arr.values:
@@ -68,7 +68,10 @@ def rl_encode(arr: ArrayIndex | Array) -> RunLengthIndex | RunLengthArray:
             last = val
         else:
             run_len[-1] += 1
-    return RunLengthIndex(name=arr.name, values=values, run_len=run_len)
+    if isinstance(arr, ArrayIndex):
+        return RunLengthIndex(name=arr.name, values=values, run_len=run_len)
+    else:
+        return RunLengthArray(name=arr.name, values=values, run_len=run_len)
 
 
 @overload
@@ -79,7 +82,7 @@ def re_encode(arr: Array) -> RunEndArray: ...
 def re_encode(arr: ArrayIndex) -> RunEndIndex: ...
 
 
-def re_encode(arr: ArrayIndex | Array) -> RunEndIndex | RunEndArray:
+def re_encode(arr):
     last = SENTINEL
     values, run_end = [], []
     for idx, val in enumerate(arr.values, start=1):
@@ -89,7 +92,10 @@ def re_encode(arr: ArrayIndex | Array) -> RunEndIndex | RunEndArray:
         else:
             run_end[-1] = idx
         last = val
-    return RunEndIndex(name=arr.name, values=values, run_end=run_end)
+    if isinstance(arr, ArrayIndex):
+        return RunEndIndex(name=arr.name, values=values, run_end=run_end)
+    else:
+        return RunEndArray(name=arr.name, values=values, run_end=run_end)
 
 
 @overload
@@ -100,11 +106,14 @@ def de_encode(arr: Array) -> DictEncodedArray: ...
 def de_encode(arr: ArrayIndex) -> DictEncodedIndex: ...
 
 
-def de_encode(arr: ArrayIndex | Array) -> DictEncodedIndex | DictEncodedArray:
+def de_encode(arr):
     # not using list(set(...)) to preserve order
     values = list(dict.fromkeys(arr.values))
     indices = list(map(values.index, arr.values))
-    return DictEncodedIndex(name=arr.name, values=values, indices=indices)
+    if isinstance(arr, ArrayIndex):
+        return DictEncodedIndex(name=arr.name, values=values, indices=indices)
+    else:
+        return DictEncodedArray(name=arr.name, values=values, indices=indices)
 
 
 def series_to_col(
