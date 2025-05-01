@@ -15,6 +15,7 @@ import json
 from pathlib import Path
 from typing import overload
 
+import numpy as np
 import pandas as pd
 from pydantic import RootModel
 
@@ -120,8 +121,7 @@ def series_to_col(
     col: pd.Series,
 ) -> ArrayIndex | DictEncodedIndex | Array | DictEncodedArray:
     match col.name, col.dtype.type:
-        case "value", t if issubclass(t, str) or t is object:
-            print(f"type: {t}, value: {col.iloc[:3]}")
+        case "value", t if issubclass(t, str) or t in (object, np.object_):
             col = col.astype("category")
             return DictEncodedArray(
                 name=col.name,
@@ -129,19 +129,18 @@ def series_to_col(
                 indices=col.cat.codes,
             )
         case "value", t if issubclass(t, int):
-            return Array(name=col.name, values=col.values)
+            return Array(name=col.name, values=col.to_list())
         case _, t if issubclass(t, (bool, float, bytes)):
-            return Array(name=col.name, values=col.values)
-        case _, t if issubclass(t, str) or t is object:
-            print(f"idx_type: {t}, value: {col.iloc[:3]}")
+            return Array(name=col.name, values=col.to_list())
+        case _, t if issubclass(t, str) or t in (object, np.object_):
             col = col.astype("category")
             return DictEncodedIndex(
                 name=col.name,
-                values=col.cat.categories,
-                indices=col.cat.codes,
+                values=col.cat.categories.to_list(),
+                indices=col.cat.codes.to_list(),
             )
         case _, t if issubclass(t, (int, datetime, timedelta)) or t is object:
-            return ArrayIndex(name=col.name, values=col.values)
+            return ArrayIndex(name=col.name, values=col.to_list())
         case n, t:
             raise NotImplementedError(f"{n}: unknown type {t}")
 
