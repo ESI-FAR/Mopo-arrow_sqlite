@@ -2,65 +2,100 @@
 # /// script
 # requires-python = ">=3.10"
 # dependencies = [
+#   "python-dateutil",
 #   "pandas>=2",
 #   "pydantic>=2",
 # ]
 # ///
 
-"""Write JSON schema for JSON blob in SpineDB
+"""Write JSON schema for JSON blob in SpineDB"""
 
-"""
-
-# from dataclasses import dataclass
-# from dataclasses import field
 from datetime import datetime, timedelta
-from typing import Annotated, Literal, Type, TypeAlias
+from typing import Annotated, Literal, TypeAlias
 
+from dateutil.relativedelta import relativedelta
+import numpy as np
 import pandas as pd
-from pydantic import RootModel
-from pydantic.dataclasses import dataclass
-from pydantic.dataclasses import Field as field
-from pydantic.types import StringConstraints
+
+if __name__ == "__main__":
+    from pydantic.dataclasses import dataclass
+    from pydantic.dataclasses import Field as field
+else:
+    from dataclasses import dataclass
+    from dataclasses import field
 
 
 Floats: TypeAlias = list[float]
 Integers: TypeAlias = list[int]
 Strings: TypeAlias = list[str]
 Booleans: TypeAlias = list[bool]
+BytesList: TypeAlias = list[bytes]  # array of bytes to support mixed types
 
 Datetimes: TypeAlias = list[datetime]
 Timedeltas: TypeAlias = list[timedelta]
 
 # FIXME: how to do w/o Pydantic?
 time_pat_re = r"(Y|M|D|WD|h|m|s)[0-9]+-[0-9]+"
-TimePattern: TypeAlias = Annotated[str, StringConstraints(pattern=time_pat_re)]
+
+# generate schema w/ Pydantic by running as a script
+if __name__ == "__main__":
+    from pydantic.types import StringConstraints
+
+    TimePattern: TypeAlias = Annotated[str, StringConstraints(pattern=time_pat_re)]
+else:
+    from re import Pattern
+
+    @dataclass(frozen=True)
+    class TimePattern:
+        pattern: str
+        re: str | Pattern[str] = time_pat_re
+
+
 TimePatterns: TypeAlias = list[TimePattern]
 
+# nullable variant of arrays
 NullableIntegers: TypeAlias = list[int | None]
 NullableFloats: TypeAlias = list[float | None]
 NullableStrings: TypeAlias = list[str | None]
 NullableBooleans: TypeAlias = list[bool | None]
+NullableBytesList: TypeAlias = list[bytes | None]
 NullableDatetimes: TypeAlias = list[datetime | None]
 NullableTimedeltas: TypeAlias = list[timedelta | None]
 NullableTimePatterns: TypeAlias = list[TimePattern | None]
 
+# sets of types used to define array schemas below
 IndexTypes: TypeAlias = Integers | Strings | Datetimes | Timedeltas | TimePatterns
 ValueTypes: TypeAlias = (
-    Integers | Strings | Floats | Booleans | Datetimes | Timedeltas | TimePatterns
+    Integers
+    | Strings
+    | Floats
+    | Booleans
+    | Datetimes
+    | Timedeltas
+    | TimePatterns
+    | BytesList
 )
 NullableValueTypes: TypeAlias = (
     NullableIntegers
     | NullableStrings
     | NullableFloats
     | NullableBooleans
+    | NullableBytesList
     | NullableDatetimes
     | NullableTimedeltas
     | NullableTimePatterns
 )
 
-
+# names of types used in the schema
 ValueTypeNames: TypeAlias = Literal[
-    "string", "integer", "number", "boolean", "date-time", "duration", "time-pattern"
+    "string",
+    "integer",
+    "number",
+    "boolean",
+    "bytes",
+    "date-time",
+    "duration",
+    "time-pattern",
 ]
 IndexValueTypeNames: TypeAlias = Literal[
     "string", "integer", "date-time", "duration", "time-pattern"
@@ -69,13 +104,25 @@ IndexValueTypeNames: TypeAlias = Literal[
 type_map: dict[type, ValueTypeNames] = {
     str: "string",
     int: "integer",
+    np.int8: "integer",
+    np.int16: "integer",
+    np.int32: "integer",
+    np.int64: "integer",
     float: "number",
+    np.float16: "number",
+    np.float32: "number",
+    np.float64: "number",
+    # np.float128: "number",  # not available on macos
     bool: "boolean",
+    np.bool: "boolean",
     datetime: "date-time",
     pd.Timestamp: "date-time",
     timedelta: "duration",
     pd.Timedelta: "duration",
+    relativedelta: "duration",
+    pd.DateOffset: "duration",
     TimePattern: "time-pattern",
+    bytes: "string",
 }
 
 
@@ -184,7 +231,7 @@ class Array(_TypeInferMixin):
 
 # NOTE: To add run-length encoding to the schema, add it to the
 # following type union following which, we need to implement a
-# converter to an Arrow array type
+# converter to a compatible pyarrow array type
 Table: TypeAlias = list[
     RunEndIndex | DictEncodedIndex | ArrayIndex | RunEndArray | DictEncodedArray | Array
 ]
@@ -194,6 +241,8 @@ if __name__ == "__main__":
     from argparse import ArgumentParser
     import json
     from pathlib import Path
+
+    from pydantic import RootModel
 
     parser = ArgumentParser(__doc__)
     parser.add_argument("json_file", help="Path of JSON schema file to write")

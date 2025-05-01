@@ -1,5 +1,6 @@
 {
   "type": "array",
   "data": ["one", "two"],
+  "value_type": "str",
   "index_name": "step"
 }

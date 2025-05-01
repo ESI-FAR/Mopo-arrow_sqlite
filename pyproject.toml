@@ -14,9 +14,15 @@ dependencies = [
      "pyarrow",
      "pydantic",
      "pytest",
+     "python-dateutil",
      "rich",
      "spinedb-api",
      "sqlalchemy",
+]
+[project.optional-dependencies]
+dev = [
+    "mypy",
+    "pytest",
 ]
 
 [tool.hatch.metadata.source]

@@ -7,9 +7,9 @@ import pyarrow as pa
 from typing import Any, Callable
 
 
-def execute_on_sqlite(database_uri: str,
-                      my_function: Callable,
-                      *args: Any, **kwargs: Any) -> Any:
+def execute_on_sqlite(
+    database_uri: str, my_function: Callable, *args: Any, **kwargs: Any
+) -> Any:
     """Execute a function on an SQlite database.
 
     Returns:
@@ -21,10 +21,13 @@ def execute_on_sqlite(database_uri: str,
         connection.commit()
         return result
 
-def _insert_data_into_table(cursor: adbc_driver_manager.dbapi.Cursor,
-                           table_name: str,
-                           data: pa.lib.Table,
-                           mode: str) -> int:
+
+def _insert_data_into_table(
+    cursor: adbc_driver_manager.dbapi.Cursor,
+    table_name: str,
+    data: pa.lib.Table,
+    mode: str,
+) -> int:
     """Create a table and fill it with data or append data to an existing one.
 
     Args:
@@ -44,11 +47,9 @@ def _insert_data_into_table(cursor: adbc_driver_manager.dbapi.Cursor,
     return result
 
 
-
-def write_data_to_db(database_uri: str,
-                     table_name: str,
-                     data: pa.lib.Table,
-                     mode: str) -> int:
+def write_data_to_db(
+    database_uri: str, table_name: str, data: pa.lib.Table, mode: str
+) -> int:
     """Create a table and fill it with data or append data to an existing one.
 
     Args:
@@ -60,16 +61,13 @@ def write_data_to_db(database_uri: str,
     Returns:
         Number of rows inserted
     """
-    rows_inserted: int = execute_on_sqlite(database_uri,
-                                           _insert_data_into_table,
-                                           table_name,
-                                           data,
-                                           mode)
+    rows_inserted: int = execute_on_sqlite(
+        database_uri, _insert_data_into_table, table_name, data, mode
+    )
     return rows_inserted
 
 
-def database_equality(uri_database_1: str,
-                      uri_database_2: str) -> bool:
+def database_equality(uri_database_1: str, uri_database_2: str) -> bool:
     """Compare equality of two SQlite databases."""
 
     connection: adbc_driver_manager.dbapi.Connection
